@@ -70,6 +70,66 @@ classdef GlobalStudyInfo < handle
       harrisFeatureDetectorParameters = ImageProcessing.HarrisFeatureDetectorParameters;
       kltTrackerParameters = ImageProcessing.KLTParameters;
       
+      % these are variables associated with subswallow counts
+      % three frame index array, first element is start frame, second
+      % element is end frame
+      subSwallowCount=0;
+      subswallowFrameIndex1 = zeros(2,1);
+      subswallowFrameIndex2 = zeros(2,1);
+      subswallowFrameIndex3 = zeros(2,1);
+      
+     % LVC_COMPLETE: A score that records the completeness after each
+     % sub-swallows
+     
+     LVC_COMPLETE_SCORE = zeros(3,1);
+     TempCompleteness = 0;
+     
+     %BPM Frame Index (Bolus at Mandible)
+     bpm_Frame = 0;
+     
+     % First Elevation of the larynx : record the frame containing first
+     % ...laryngeal air column
+     le_Frame=0;
+     
+     % First evidence of Hyoid burst 1hoid
+     oneHyoid_Frame=0;
+     
+     % location of bolus based on scale , always determined at frame #
+     % marked 1hyoid, value should only be equal to 0,1,2,3,4
+     Bl_1hyoid = -1;
+     
+     %lva_frame maximal laryngeal approximation record the first frame
+     %where there is maximum approximation of the arytenoids to the
+     %laryngeal surface of the epiglottis
+     lva_Frame = -1;
+     
+     % bolus location for lva frame
+     Bl_lva = -1;
+     
+     % maximum pharyngeal constriction frame
+     MPC_Frame = -1;
+     
+     %Maximum UES Openning
+     UES_MAX_Frame = -1;
+     
+     % Epiglottic Return Frame
+     Epivert_Frame = -1;
+     
+     % first frame showing the pyriform sinuses at the lowest position
+     First_Rest_Frame=-1;
+     
+     % the frame showing the pyriform sinuses at the lowest position for
+     % the final subswallow
+     Final_Rest_Frame = -1;
+     
+     % Multiple Draw Complete Monitor
+     multiDraw = 0;
+     
+     % Reference Line list
+     ref_Hlist = [];
+      
+     %region of interests lIST
+     roi_Hlist = [];
       
    end
     

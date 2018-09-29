@@ -24,7 +24,7 @@ function varargout = VFTracker3(varargin)
 
 % Edit the above text to modify the response to help VFTracker3
 
-% Last Modified by GUIDE v2.5 04-Aug-2017 14:51:58
+% Last Modified by GUIDE v2.5 29-Sep-2018 15:28:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1318,11 +1318,12 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-    globalStudyInfo.hold_position = floor(get(handles.frameScrubber, 'Value'));
-    set(handles.hold_position_text, 'String', globalStudyInfo.hold_position);
-    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
-    uicontrol(handles.frameScrubber);
+     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    if ~isnan(globalStudyInfo.subswallowFrameIndex3(1,1))
+        set(handles.frameScrubber, 'Value', globalStudyInfo.subswallowFrameIndex3(1,1)); 
+    else
+        set(handles.frameScrubber, 'Value', 1);
+    end
     
 % --- Executes on button press in pushbutton2.
 function pushbutton2_Callback(hObject, eventdata, handles)
@@ -1362,6 +1363,7 @@ function pushbutton5_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     globalStudyInfo.at_rest = floor(get(handles.frameScrubber, 'Value'));
     set(handles.at_rest_text, 'String', globalStudyInfo.at_rest);
@@ -1387,22 +1389,25 @@ function startButton_Callback(hObject, eventdata, handles)
 % hObject    handle to startButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-    globalStudyInfo.start_frame = floor(get(handles.frameScrubber, 'Value'));
-    set(handles.start_frame_text, 'String', globalStudyInfo.start_frame);
-    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
-    uicontrol(handles.frameScrubber);
+    
+      globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    if ~isnan(globalStudyInfo.subswallowFrameIndex1(1,1))
+        set(handles.frameScrubber, 'Value', globalStudyInfo.subswallowFrameIndex1(1,1)); 
+    else
+        set(handles.frameScrubber, 'Value', 1);
+    end
 
 % --- Executes on button press in endButton.
 function endButton_Callback(hObject, eventdata, handles)
 % hObject    handle to endButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-    globalStudyInfo.end_frame = floor(get(handles.frameScrubber, 'Value'));
-    set(handles.end_frame_text, 'String', globalStudyInfo.end_frame);
-    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
-    uicontrol(handles.frameScrubber);
+       globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    if ~isnan(globalStudyInfo.subswallowFrameIndex2(1,1))
+        set(handles.frameScrubber, 'Value', globalStudyInfo.subswallowFrameIndex2(1,1)); 
+    else
+        set(handles.frameScrubber, 'Value', 1);
+    end
 % --- Executes on button press in laryngeal vestibule closing.
 function pushbutton14_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton14 (see GCBO)
@@ -1796,20 +1801,73 @@ function pcr_min_area_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of pcr_min_area_button
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+handles.frameViewer;
+h = imfreehand_overwrite;
+
+%pos = h.getPosition();
+hc = get(h,'Children');
+XData = []; YData = [];
+for ii=1:length(hc)
+  x = get(hc(ii),'XData');
+  y = get(hc(ii),'YData');
+  XData = [XData; x(:)];
+  YData = [YData; y(:)];
+end
+
+   globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     button_state = get(hObject,'Value');
     allPoints = [0,0];
     
+       hList = [];
+     hList = [hList;h];
+     while (button_state==get(hObject,'Max'))
+         h1 = imfreehand_overwrite;
+         hc = get(h1,'Children');
+         XData1 = []; YData1 = [];
+         for ii=1:length(hc)
+             x = get(hc(ii),'XData');
+             y = get(hc(ii),'YData');
+             XData1 = [XData1; x(:)];
+             YData1 = [YData1; y(:)];    
+         end
+         XData = [XData;XData1];
+         YData = [YData;YData1];
+         hList = [hList;h1];
+         globalStudyInfo2 = getappdata(handles.appFigure, 'globalStudyInfo');
+         if(globalStudyInfo2.multiDraw==1)
+             globalStudyInfo2.multiDraw=0;     
+             setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo2);
+             break;
+         end
+     end
+    
     if (button_state == get(hObject,'Max'))
-        [x, y] = mygetline(handles.frameViewer);
-        allPoints = [x,y];
-        
-        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(x)), 2);
+      %  [x, y] = mygetline(handles.frameViewer);
+      %  allPoints = [x,y];
+       allPoints = [XData,YData];
+       
+        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(XData)), 2);
         set(hObject,'Value',0);
     end
     
     pcr = 0;
     numPoints = size(allPoints,1);
+    %allPoints
+%     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+%     button_state = get(hObject,'Value');
+%     allPoints = [0,0];
+%     
+%     if (button_state == get(hObject,'Max'))
+%         [x, y] = mygetline(handles.frameViewer);
+%         allPoints = [x,y];
+%         
+%         showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(x)), 2);
+%         set(hObject,'Value',0);
+%     end
+%     
+%     pcr = 0;
+%     numPoints = size(allPoints,1);
+%     allPoints
     
     for i = 1:numPoints
         if numPoints == 1
@@ -1835,7 +1893,19 @@ function pcr_min_area_button_Callback(hObject, eventdata, handles)
         globalStudyInfo.pcr_min_points = allPoints;
         globalStudyInfo.pcr_min_area = pcr;
         handles.pcr_min_area_text.String = num2str(pcr);
+         ref_hList =globalStudyInfo.ref_Hlist;
+       if(~isempty(ref_hList))  
+       [c,d] = size(ref_hList);
+         for mm = 1:c
+         delete(ref_hList(mm,1));
+         end
+         globalStudyInfo.ref_Hlist = [];      
+       end
         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+          [a,b] = size(hList);
+        for m = 1:a
+        delete(hList(m,1));
+        end
     end
 
 % --- Executes on button press in pcr_max_area_button.
@@ -1845,17 +1915,55 @@ function pcr_max_area_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of pcr_max_area_button
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+handles.frameViewer;
+h = imfreehand_overwrite;
+
+%pos = h.getPosition();
+hc = get(h,'Children');
+XData = []; YData = [];
+for ii=1:length(hc)
+  x = get(hc(ii),'XData');
+  y = get(hc(ii),'YData');
+  XData = [XData; x(:)];
+  YData = [YData; y(:)];
+end
+
+   globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     button_state = get(hObject,'Value');
     allPoints = [0,0];
     
+       hList = [];
+     hList = [hList;h];
+     while (button_state==get(hObject,'Max'))
+         h1 = imfreehand_overwrite;
+         hc = get(h1,'Children');
+         XData1 = []; YData1 = [];
+         for ii=1:length(hc)
+             x = get(hc(ii),'XData');
+             y = get(hc(ii),'YData');
+             XData1 = [XData1; x(:)];
+             YData1 = [YData1; y(:)];    
+         end
+         XData = [XData;XData1];
+         YData = [YData;YData1];
+         hList = [hList;h1];
+         globalStudyInfo2 = getappdata(handles.appFigure, 'globalStudyInfo');
+         if(globalStudyInfo2.multiDraw==1)
+             globalStudyInfo2.multiDraw=0;     
+             setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo2);
+             break;
+         end
+     end
+    
     if (button_state == get(hObject,'Max'))
-        [x, y] = mygetline(handles.frameViewer);
-        allPoints = [x,y];
-        
-        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(x)), 2);
+      %  [x, y] = mygetline(handles.frameViewer);
+      %  allPoints = [x,y];
+       allPoints = [XData,YData];
+       
+        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(XData)), 2);
         set(hObject,'Value',0);
     end
+    
     
     pcr = 0;
     numPoints = size(allPoints,1);
@@ -1884,8 +1992,19 @@ function pcr_max_area_button_Callback(hObject, eventdata, handles)
         globalStudyInfo.pcr_max_points = allPoints;
         globalStudyInfo.pcr_max_area = pcr;
         handles.pcr_max_area_text.String = num2str(pcr);
-
+         ref_hList =globalStudyInfo.ref_Hlist;
+       if(~isempty(ref_hList))  
+       [c,d] = size(ref_hList);
+         for mm = 1:c
+         delete(ref_hList(mm,1));
+         end
+         globalStudyInfo.ref_Hlist = [];      
+       end
         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+         [a,b] = size(hList);
+        for m = 1:a
+        delete(hList(m,1));
+        end
     end
 
 
@@ -1927,19 +2046,69 @@ function valres_toggle_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of valres_toggle
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+
+
+handles.frameViewer;
+h = imfreehand_overwrite;
+%pos = h.getPosition();
+hc = get(h,'Children');
+XData = []; YData = [];
+for ii=1:length(hc)
+  x = get(hc(ii),'XData');
+  y = get(hc(ii),'YData');
+  XData = [XData; x(:)];
+  YData = [YData; y(:)];
+end
+
+   globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     button_state = get(hObject,'Value');
     allPoints = [0,0];
+     hList = [];
+     hList = [hList;h];
+     while (button_state==get(hObject,'Max'))
+         h1 = imfreehand_overwrite;
+         hc = get(h1,'Children');
+         XData1 = []; YData1 = [];
+         for ii=1:length(hc)
+             x = get(hc(ii),'XData');
+             y = get(hc(ii),'YData');
+             XData1 = [XData1; x(:)];
+             YData1 = [YData1; y(:)];    
+         end
+         XData = [XData;XData1];
+         YData = [YData;YData1];
+         hList = [hList;h1];
+         globalStudyInfo2 = getappdata(handles.appFigure, 'globalStudyInfo');
+         if(globalStudyInfo2.multiDraw==1)
+             globalStudyInfo2.multiDraw=0;     
+             setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo2);
+             break;
+         end
+     end
     
     if (button_state == get(hObject,'Max'))
-        
-        [x, y] = mygetline(handles.frameViewer);
-        allPoints = [x,y];
-        
-        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(x)), 2);
-        set(hObject,'String','Valleculae Residue');
+      %  [x, y] = mygetline(handles.frameViewer);
+      %  allPoints = [x,y];
+       allPoints = [XData,YData];
+       
+        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(XData)), 2);
         set(hObject,'Value',0);
     end
+    
+  
+%     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+%     button_state = get(hObject,'Value');
+%     allPoints = [0,0];
+%     
+%     if (button_state == get(hObject,'Max'))
+%         
+%         [x, y] = mygetline(handles.frameViewer);
+%         allPoints = [x,y];
+%         
+%         showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(x)), 2);
+%         set(hObject,'String','Valleculae Residue');
+%         set(hObject,'Value',0);
+%     end
     
     valres_area = 0;
     numPoints = size(allPoints,1);
@@ -1963,13 +2132,26 @@ function valres_toggle_Callback(hObject, eventdata, handles)
                 - (allPoints(i,2) * allPoints(i+1,1)));
         end
     end
-
-    
+       
+     
     if numPoints>2
         globalStudyInfo.nrrs_valres_points = allPoints;
         globalStudyInfo.nrrs_valres_area = valres_area;
         handles.nrrs_valres_area_text.String = num2str(valres_area);
+        
+         ref_hList =globalStudyInfo.ref_Hlist;
+       if(~isempty(ref_hList))  
+       [c,d] = size(ref_hList);
+         for mm = 1:c
+         delete(ref_hList(mm,1));
+         end
+         globalStudyInfo.ref_Hlist = [];      
+       end
         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+       [a,b] = size(hList);
+        for m = 1:a
+        delete(hList(m,1));
+        end
     end
     
 % --- Executes on button press in valarea_toggle.
@@ -1979,19 +2161,72 @@ function valarea_toggle_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of valarea_toggle
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+
+handles.frameViewer;
+h = imfreehand_overwrite;
+
+%pos = h.getPosition();
+hc = get(h,'Children');
+XData = []; YData = [];
+for ii=1:length(hc)
+  x = get(hc(ii),'XData');
+  y = get(hc(ii),'YData');
+  XData = [XData; x(:)];
+  YData = [YData; y(:)];
+end
+
+   globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     button_state = get(hObject,'Value');
     allPoints = [0,0];
     
+       hList = [];
+     hList = [hList;h];
+     while (button_state==get(hObject,'Max'))
+         h1 = imfreehand_overwrite;
+         hc = get(h1,'Children');
+         XData1 = []; YData1 = [];
+         for ii=1:length(hc)
+             x = get(hc(ii),'XData');
+             y = get(hc(ii),'YData');
+             XData1 = [XData1; x(:)];
+             YData1 = [YData1; y(:)];    
+         end
+         XData = [XData;XData1];
+         YData = [YData;YData1];
+         hList = [hList;h1];
+         globalStudyInfo2 = getappdata(handles.appFigure, 'globalStudyInfo');
+         if(globalStudyInfo2.multiDraw==1)
+             globalStudyInfo2.multiDraw=0;     
+             setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo2);
+             break;
+         end
+     end
+    
     if (button_state == get(hObject,'Max'))
-        
-        [x, y] = mygetline(handles.frameViewer);
-        allPoints = [x,y];
-        
-        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(x)), 2);
-        set(hObject,'String','Valleculae Area');
+      %  [x, y] = mygetline(handles.frameViewer);
+      %  allPoints = [x,y];
+       allPoints = [XData,YData];
+       
+        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(XData)), 2);
         set(hObject,'Value',0);
     end
+    
+    pcr = 0;
+    numPoints = size(allPoints,1);
+    allPoints
+%     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+%     button_state = get(hObject,'Value');
+%     allPoints = [0,0];
+    
+%     if (button_state == get(hObject,'Max'))
+%         
+%         [x, y] = mygetline(handles.frameViewer);
+%         allPoints = [x,y];
+%         
+%         showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(x)), 2);
+%         set(hObject,'String','Valleculae Area');
+%         set(hObject,'Value',0);
+%     end
     
     totalval_area = 0;
     numPoints = size(allPoints,1);
@@ -2020,8 +2255,20 @@ function valarea_toggle_Callback(hObject, eventdata, handles)
         globalStudyInfo.nrrs_totalval_points = allPoints;
         globalStudyInfo.nrrs_totalval_area = totalval_area;
         handles.nrrs_totalval_area_text.String = num2str(totalval_area);
+         ref_hList =globalStudyInfo.ref_Hlist;
+       if(~isempty(ref_hList))  
+       [c,d] = size(ref_hList);
+         for mm = 1:c
+         delete(ref_hList(mm,1));
+         end
+         globalStudyInfo.ref_Hlist = [];      
+       end
 
         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+          [a,b] = size(hList);
+        for m = 1:a
+        delete(hList(m,1));
+        end
     end
     
 % --- Executes on button press in pirires_toggle.
@@ -2031,19 +2278,70 @@ function pirires_toggle_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of pirires_toggle
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+
+handles.frameViewer;
+h = imfreehand_overwrite;
+
+%pos = h.getPosition();
+hc = get(h,'Children');
+XData = []; YData = [];
+for ii=1:length(hc)
+  x = get(hc(ii),'XData');
+  y = get(hc(ii),'YData');
+  XData = [XData; x(:)];
+  YData = [YData; y(:)];
+end
+
+   globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     button_state = get(hObject,'Value');
     allPoints = [0,0];
     
+       hList = [];
+     hList = [hList;h];
+     while (button_state==get(hObject,'Max'))
+         h1 = imfreehand_overwrite;
+         hc = get(h1,'Children');
+         XData1 = []; YData1 = [];
+         for ii=1:length(hc)
+             x = get(hc(ii),'XData');
+             y = get(hc(ii),'YData');
+             XData1 = [XData1; x(:)];
+             YData1 = [YData1; y(:)];    
+         end
+         XData = [XData;XData1];
+         YData = [YData;YData1];
+         hList = [hList;h1];
+         globalStudyInfo2 = getappdata(handles.appFigure, 'globalStudyInfo');
+         if(globalStudyInfo2.multiDraw==1)
+             globalStudyInfo2.multiDraw=0;     
+             setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo2);
+             break;
+         end
+     end
+    
     if (button_state == get(hObject,'Max'))
-        
-        [x, y] = mygetline(handles.frameViewer);
-        allPoints = [x,y];
-        
-        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(x)), 2);
-        set(hObject,'String','Piriform Residue');
+      %  [x, y] = mygetline(handles.frameViewer);
+      %  allPoints = [x,y];
+       allPoints = [XData,YData];
+       
+        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(XData)), 2);
         set(hObject,'Value',0);
     end
+    
+  
+%     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+%     button_state = get(hObject,'Value');
+%     allPoints = [0,0];
+%     
+%     if (button_state == get(hObject,'Max'))
+%         
+%         [x, y] = mygetline(handles.frameViewer);
+%         allPoints = [x,y];
+%         
+%         showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(x)), 2);
+%         set(hObject,'String','Piriform Residue');
+%         set(hObject,'Value',0);
+%     end
     
     pirires_area = 0;
     numPoints = size(allPoints,1);
@@ -2072,7 +2370,19 @@ function pirires_toggle_Callback(hObject, eventdata, handles)
         globalStudyInfo.nrrs_pirires_points = allPoints;
         globalStudyInfo.nrrs_pirires_area = pirires_area;
         handles.nrrs_pirires_area_text.String = num2str(pirires_area);
+         ref_hList =globalStudyInfo.ref_Hlist;
+       if(~isempty(ref_hList))  
+       [c,d] = size(ref_hList);
+         for mm = 1:c
+         delete(ref_hList(mm,1));
+         end
+         globalStudyInfo.ref_Hlist = [];      
+       end
         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+          [a,b] = size(hList);
+        for m = 1:a
+        delete(hList(m,1));
+        end
     end
     
 
@@ -2083,19 +2393,70 @@ function piriarea_toggle_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of piriarea_toggle
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+
+handles.frameViewer;
+h = imfreehand_overwrite;
+
+%pos = h.getPosition();
+hc = get(h,'Children');
+XData = []; YData = [];
+for ii=1:length(hc)
+  x = get(hc(ii),'XData');
+  y = get(hc(ii),'YData');
+  XData = [XData; x(:)];
+  YData = [YData; y(:)];
+end
+
+   globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     button_state = get(hObject,'Value');
     allPoints = [0,0];
     
+       hList = [];
+     hList = [hList;h];
+     while (button_state==get(hObject,'Max'))
+         h1 = imfreehand_overwrite;
+         hc = get(h1,'Children');
+         XData1 = []; YData1 = [];
+         for ii=1:length(hc)
+             x = get(hc(ii),'XData');
+             y = get(hc(ii),'YData');
+             XData1 = [XData1; x(:)];
+             YData1 = [YData1; y(:)];    
+         end
+         XData = [XData;XData1];
+         YData = [YData;YData1];
+         hList = [hList;h1];
+         globalStudyInfo2 = getappdata(handles.appFigure, 'globalStudyInfo');
+         if(globalStudyInfo2.multiDraw==1)
+             globalStudyInfo2.multiDraw=0;     
+             setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo2);
+             break;
+         end
+     end
+    
     if (button_state == get(hObject,'Max'))
-        
-        [x, y] = mygetline(handles.frameViewer);
-        allPoints = [x,y];
-        
-        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(x)), 2);
-        set(hObject,'String','Piriform Area');
+      %  [x, y] = mygetline(handles.frameViewer);
+      %  allPoints = [x,y];
+       allPoints = [XData,YData];
+       
+        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(XData)), 2);
         set(hObject,'Value',0);
     end
+    
+
+%     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+%     button_state = get(hObject,'Value');
+%     allPoints = [0,0];
+%     
+%     if (button_state == get(hObject,'Max'))
+%         
+%         [x, y] = mygetline(handles.frameViewer);
+%         allPoints = [x,y];
+%         
+%         showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(x)), 2);
+%         set(hObject,'String','Piriform Area');
+%         set(hObject,'Value',0);
+%     end
     
     totalpiri_area = 0;
     numPoints = size(allPoints,1);
@@ -2125,7 +2486,19 @@ function piriarea_toggle_Callback(hObject, eventdata, handles)
         globalStudyInfo.nrrs_totalpiri_points = allPoints;
         globalStudyInfo.nrrs_totalpiri_area = totalpiri_area;
         handles.nrrs_totalpiri_area_text.String = num2str(totalpiri_area);
+         ref_hList =globalStudyInfo.ref_Hlist;
+       if(~isempty(ref_hList))  
+       [c,d] = size(ref_hList);
+         for mm = 1:c
+         delete(ref_hList(mm,1));
+         end
+         globalStudyInfo.ref_Hlist = [];      
+       end
         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+          [a,b] = size(hList);
+        for m = 1:a
+        delete(hList(m,1));
+        end
     end
     
 % --- Executes on button press in uesd_toggle.
@@ -2135,17 +2508,69 @@ function uesd_toggle_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of uesd_toggle
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+
+handles.frameViewer;
+h = imfreehand_overwrite;
+
+%pos = h.getPosition();
+hc = get(h,'Children');
+XData = []; YData = [];
+for ii=1:length(hc)
+  x = get(hc(ii),'XData');
+  y = get(hc(ii),'YData');
+  XData = [XData; x(:)];
+  YData = [YData; y(:)];
+end
+
+   globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     button_state = get(hObject,'Value');
     allPoints = [0,0];
     
+    
+     hList = [];
+     hList = [hList;h];
+     while (button_state==get(hObject,'Max'))
+         h1 = imfreehand_overwrite;
+         hc = get(h1,'Children');
+         XData1 = []; YData1 = [];
+         for ii=1:length(hc)
+             x = get(hc(ii),'XData');
+             y = get(hc(ii),'YData');
+             XData1 = [XData1; x(:)];
+             YData1 = [YData1; y(:)];    
+         end
+         XData = [XData;XData1];
+         YData = [YData;YData1];
+         hList = [hList;h1];
+         globalStudyInfo2 = getappdata(handles.appFigure, 'globalStudyInfo');
+         if(globalStudyInfo2.multiDraw==1)
+             globalStudyInfo2.multiDraw=0;     
+             setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo2);
+             break;
+         end
+     end
+    
     if (button_state == get(hObject,'Max'))
-        %getting all points for distension distance
-        allPoints = mygetline(handles.frameViewer);
-        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', size(allPoints, 1)), 2);
-        set(hObject,'String','UES Distension');
+      %  [x, y] = mygetline(handles.frameViewer);
+      %  allPoints = [x,y];
+       allPoints = [XData,YData];
+       
+        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(XData)), 2);
         set(hObject,'Value',0);
     end
+    
+   
+%     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+%     button_state = get(hObject,'Value');
+%     allPoints = [0,0];
+%     
+%     if (button_state == get(hObject,'Max'))
+%         %getting all points for distension distance
+%         allPoints = mygetline(handles.frameViewer);
+%         showFeedbackPopup(handles,sprintf('Total %d Points Tracked', size(allPoints, 1)), 2);
+%         set(hObject,'String','UES Distension');
+%         set(hObject,'Value',0);
+%     end
     
     if size(allPoints, 1) == 1
         disp('Only 1 point selected, UES distension will not be calculated');
@@ -2159,7 +2584,20 @@ function uesd_toggle_Callback(hObject, eventdata, handles)
         globalStudyInfo.uesd_points = allPoints;
         globalStudyInfo.uesd_dist = uesd;
         handles.uesd_dist_text.String = num2str(uesd);
+         ref_hList =globalStudyInfo.ref_Hlist;
+       if(~isempty(ref_hList))  
+       [c,d] = size(ref_hList);
+         for mm = 1:c
+         delete(ref_hList(mm,1));
+         end
+         globalStudyInfo.ref_Hlist = [];      
+       end
         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+         [a,b] = size(hList);
+        for m = 1:a
+        delete(hList(m,1));
+        end
+        
     end
 
 % --- Executes on button press in pas_toggle.
@@ -2315,12 +2753,9 @@ function goToStartFrame_Callback(hObject, eventdata, handles)
 % hObject    handle to goToStartFrame (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-    if ~isnan(globalStudyInfo.start_frame)
-        set(handles.frameScrubber, 'Value', globalStudyInfo.start_frame); 
-    else
+
         set(handles.frameScrubber, 'Value', 1);
-    end
+
 
 
 % --- Executes on button press in beforePAS.
@@ -2430,3 +2865,820 @@ else
     
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 end
+
+
+% --- Executes on button press in pushbutton20.
+function pushbutton20_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton20 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% temporarily not implemented
+
+
+% --- Executes on button press in pushbutton21.
+function pushbutton21_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton21 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     globalStudyInfo.lva_Frame = currentFrameIndex;  
+    set(handles.text62,'String',globalStudyInfo.lva_Frame);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+    set(handles.uipanel17,'visible','on');
+
+
+% --- Executes on button press in pushbutton22.
+function pushbutton22_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton22 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'))
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     globalStudyInfo.bpm_Frame = currentFrameIndex; 
+      set(handles.BPM_FRAME_text,'String',globalStudyInfo.bpm_Frame);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes on button press in pushbutton23.
+function pushbutton23_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton23 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     globalStudyInfo.le_Frame = currentFrameIndex;  
+     set(handles.text63,'String',globalStudyInfo.le_Frame);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes on button press in pushbutton24.
+function pushbutton24_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton24 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.oneHyoid_Frame = currentFrameIndex;  
+    set(handles.text61,'String',currentFrameIndex);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+    set(handles.uipanel16,'visible','on');
+
+
+% --- Executes on button press in pushbutton25.
+function pushbutton25_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton25 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+   
+
+
+% --- Executes on button press in pushbutton26.
+function pushbutton26_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton26 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.UES_MAX_Frame = currentFrameIndex;  
+     set(handles.text68,'String',globalStudyInfo.UES_MAX_Frame);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes on button press in pushbutton27.
+function pushbutton27_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton27 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.MPC_Frame = currentFrameIndex;  
+    set(handles.text70,'String',globalStudyInfo.MPC_Frame);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes on button press in pushbutton28.
+function pushbutton28_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton28 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+ currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.Epivert_Frame = currentFrameIndex; 
+    set(handles.text69,'String',globalStudyInfo.Epivert_Frame);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+
+% --- Executes on button press in pushbutton29.
+function pushbutton29_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton29 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton30.
+function pushbutton30_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton30 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+SSCount = globalStudyInfo.subSwallowCount;
+
+if SSCount == 1
+    if currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex1(2,1)
+        set(handles.uipanel15,'visible','on');
+    else
+        set(handles.uipanel14,'visible','on')
+    end
+    
+    
+elseif SSCount ==2
+     if ((currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex1(2,1))&&(currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex2(2,1)))   
+        set(handles.uipanel15,'visible','on');
+     else
+        set(handles.uipanel14,'visible','on')
+    end
+    
+elseif SSCount ==3
+     if (currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex1(2,1))&&(currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex2(2,1))&&(currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex3(2,1))
+        set(handles.uipanel15,'visible','on');
+     else
+         set(handles.uipanel14,'visible','on')       
+    end
+    
+end
+
+
+setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+
+% --- Executes on button press in pushbutton31.
+function pushbutton31_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton31 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    subSwallowCount = globalStudyInfo.subSwallowCount;
+    
+    if subSwallowCount == 1
+        globalStudyInfo.subswallowFrameIndex1(2,1) = currentFrameIndex
+       
+          set(handles.text75,'String',globalStudyInfo.subswallowFrameIndex1(2,1));
+        
+    elseif subSwallowCount == 2
+        globalStudyInfo.subswallowFrameIndex2(2,1) = currentFrameIndex
+        
+          set(handles.text79,'String',globalStudyInfo.subswallowFrameIndex2(2,1));
+    
+    elseif subSwallowCount == 3
+        globalStudyInfo.subswallowFrameIndex3(2,1) = currentFrameIndex
+       
+            set(handles.text87,'String',globalStudyInfo.subswallowFrameIndex3(2,1));
+        
+    end
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes on button press in pushbutton32.
+function pushbutton32_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton32 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    % only record the first three subswallows 
+  
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     globalStudyInfo.multiDraw = 1; 
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+    
+    
+
+
+% --- Executes on button press in Option2.
+function Option2_Callback(hObject, eventdata, handles)
+% hObject    handle to Option2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+%panel_handles = findobj(handles.appFigure,'type','uipanel')
+%set(panel_handles, 'parent', handles.unipanel12)
+set(handles.uipanel13,'visible','off')
+set(handles.uipanel11,'visible','off')
+set(handles.uipanel24,'visible','on')
+set(handles.uipanel25,'visible','on')
+set(handles.uipanel12,'visible','on')
+
+
+% --- Executes on button press in Option3.
+function Option3_Callback(hObject, eventdata, handles)
+% hObject    handle to Option3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+%panel_handles = findobj(handles.appFigure,'type','uipanel')
+%set(panel_handles, 'parent', handles.unipanel13)
+set(handles.uipanel12,'visible','off')
+set(handles.uipanel11,'visible','off')
+set(handles.uipanel24,'visible','on')
+set(handles.uipanel25,'visible','off')
+set(handles.uipanel13,'visible','on')
+
+% --- Executes on button press in Option1.
+function Option1_Callback(hObject, eventdata, handles)
+% hObject    handle to Option1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+%panel_handles = findobj(handles.appFigure,'type','uipanel')
+%set(panel_handles, 'parent', handles.unipanel11)
+set(handles.uipanel13,'visible','off')
+set(handles.uipanel12,'visible','off')
+set(handles.uipanel24,'visible','off')
+set(handles.uipanel25,'visible','off')
+set(handles.uipanel11,'visible','on')
+
+
+
+
+
+
+% --- Executes on button press in pushbutton36.
+function pushbutton36_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton36 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+SSCount = globalStudyInfo.subSwallowCount;
+
+if currentFrameIndex == globalStudyInfo.subswallowFrameIndex1(2,1)
+    globalStudyInfo. LVC_COMPLETE_SCORE (1,1)= currentFrameIndex;
+elseif currentFrameIndex == globalStudyInfo.subswallowFrameIndex2(2,1)
+    globalStudyInfo. LVC_COMPLETE_SCORE (2,1)= currentFrameIndex;
+elseif currentFrameIndex == globalStudyInfo.subswallowFrameIndex3(2,1)
+    globalStudyInfo. LVC_COMPLETE_SCORE (3,1)= currentFrameIndex;
+end
+
+globalStudyInfo.TempCompleteness =0;
+set(handles.uipanel14,'visible','off')
+setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+% --- Executes on button press in pushbutton37.
+function pushbutton37_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton37 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.uipanel15,'visible','off')
+
+
+
+function edit14_Callback(hObject, eventdata, handles)
+% hObject    handle to edit14 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit14 as text
+%        str2double(get(hObject,'String')) returns contents of edit14 as a double
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+    if(isnan(str2double(get(hObject,'String'))))
+        showFeedbackPopup(handles,'Please Enter either 0 or 1',1);
+    else
+        temp = str2double(get(hObject,'String'));
+        globalStudyInfo.TempCompleteness  = temp;
+         set(handles.text66, 'String', globalStudyInfo.TempCompleteness);
+        showFeedbackPopup(handles,sprintf('Completeness recorded: %d', temp),2);
+    end
+    
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes during object creation, after setting all properties.
+function edit14_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit14 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in pushbutton39.
+function pushbutton39_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton39 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.Bl_1hyoid=0;
+    set(handles.text64,'String',globalStudyInfo.Bl_1hyoid);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+     set(handles.uipanel16,'visible','off');
+% --- Executes on button press in pushbutton40.
+function pushbutton40_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton40 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+ currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.Bl_1hyoid=1;
+    set(handles.text64,'String',globalStudyInfo.Bl_1hyoid);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+     set(handles.uipanel16,'visible','off');
+
+% --- Executes on button press in pushbutton41.
+function pushbutton41_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton41 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.Bl_1hyoid=2;
+    set(handles.text64,'String',globalStudyInfo.Bl_1hyoid);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+     set(handles.uipanel16,'visible','off');
+    
+
+
+% --- Executes on button press in pushbutton42.
+function pushbutton42_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton42 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+ currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.Bl_1hyoid=3;
+    set(handles.text64,'String',globalStudyInfo.Bl_1hyoid);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+     set(handles.uipanel16,'visible','off');
+% --- Executes on button press in pushbutton43.
+function pushbutton43_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton43 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+ currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.Bl_1hyoid=4;
+    set(handles.text64,'String',globalStudyInfo.Bl_1hyoid);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+     set(handles.uipanel16,'visible','off');
+% --- Executes on button press in pushbutton38.
+function pushbutton38_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton38 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    oneHyoid_Frame = globalStudyInfo.oneHyoid_Frame; 
+    if oneHyoid_Frame == currentFrameIndex
+        set(handles.uipanel16,'visible','on');
+    else
+        showFeedbackPopup(handles,'Current Frame is not labeled as the first elevation of the larynx, Operation Failed',2);
+    end
+
+    
+
+
+% --- Executes on button press in pushbutton45.
+function pushbutton45_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton45 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.Bl_lva = 1;
+    set(handles.text65,'String',globalStudyInfo.Bl_lva);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+     set(handles.uipanel17,'visible','off');
+
+
+% --- Executes on button press in pushbutton46.
+function pushbutton46_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton46 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.Bl_lva = 2;
+    set(handles.text65,'String',globalStudyInfo.Bl_lva);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+     set(handles.uipanel17,'visible','off');
+
+
+% --- Executes on button press in pushbutton47.
+function pushbutton47_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton47 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.Bl_lva = 3;
+    set(handles.text65,'String',globalStudyInfo.Bl_lva);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+     set(handles.uipanel17,'visible','off');
+
+
+% --- Executes on button press in pushbutton48.
+function pushbutton48_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton48 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.Bl_lva = 4;
+    set(handles.text65,'String',globalStudyInfo.Bl_lva);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+     set(handles.uipanel17,'visible','off');
+
+
+% --- Executes on button press in pushbutton44.
+function pushbutton44_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton44 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.Bl_lva = 0;
+    set(handles.text65,'String',globalStudyInfo.Bl_lva);
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+     set(handles.uipanel17,'visible','off');
+
+
+% --- Executes on button press in pushbutton49.
+function pushbutton49_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton49 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+  currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    globalStudyInfo.First_Rest_Frame = currentFrameIndex;  
+     set(handles.text71,'String',globalStudyInfo.First_Rest_Frame );
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+
+% --- Executes on button press in pushbutton50.
+function pushbutton50_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton50 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    FinalSubswallowIndex = globalStudyInfo.subSwallowCount;
+    StartFrame = 0;
+    EndFrame = 0;
+   
+    if FinalSubswallowIndex == 1
+        StartFrame =subswallowFrameIndex1(1,1);
+        EndFrame = subswallowFrameIndex1(2,1);
+        
+    elseif FinalSubswallowIndex == 2
+        StartFrame =subswallowFrameIndex2(1,1);
+        EndFrame = subswallowFrameIndex2(2,1);
+    elseif FinalSubswallowIndex == 3
+        StartFrame =subswallowFrameIndex3(1,1);
+        EndFrame = subswallowFrameIndex3(2,1);
+    end
+    
+    if(currentFrameIndex<StartFrame || currentFrameIndex > EndFrame)
+          showFeedbackPopup(handles,'Current Frame is not within the range of final subswallow',1);
+    else
+         globalStudyInfo.Final_Rest_Frame = currentFrameIndex;  
+          set(handles.text72,'String',globalStudyInfo.First_Rest_Frame );
+    end
+    
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes during object creation, after setting all properties.
+ function uipanel13_CreateFcn(hObject, eventdata, handles)
+% % hObject    handle to uipanel13 (see GCBO)
+% % eventdata  reserved - to be defined in a future version of MATLAB
+% % handles    empty - handles not created until after all CreateFcns called
+% figure1 = findobj(0,'type','figure1');
+% panel_handles=findobj(figure1,'type','unipanel');
+% 
+% set(panel_handles,'parent',figure1);
+% 
+
+
+% --- Executes during object creation, after setting all properties.
+function frameViewer_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to frameViewer (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: place code in OpeningFcn to populate frameViewer
+
+
+% --- Executes on button press in pushbutton54.
+function pushbutton54_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton54 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.frameViewer;
+h = imfreehand_overwrite;
+ 
+%pos = h.getPosition();
+hc = get(h,'Children');
+XData = []; YData = [];
+for ii=1:length(hc)
+  x = get(hc(ii),'XData');
+  y = get(hc(ii),'YData');
+  XData = [XData; x(:)];
+  YData = [YData; y(:)];
+end
+
+   globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    button_state = get(hObject,'Value');
+    allPoints = [0,0];
+    
+    if (button_state == get(hObject,'Max'))
+      %  [x, y] = mygetline(handles.frameViewer);
+      %  allPoints = [x,y];
+       allPoints = [XData,YData];
+       
+        showFeedbackPopup(handles,sprintf('Total %d Points Tracked', length(XData)), 2);
+        set(hObject,'Value',0);
+    end
+    
+    pcr = 0;
+    numPoints = size(allPoints,1);
+    allPoints
+    
+    for i = 1:numPoints
+        if numPoints == 1
+            disp('Only 1 point selected, PCR will not be calculated');
+            break;
+        end
+        
+        % Coordinate based area calculation
+        if i == numPoints
+            pcr = pcr + ((allPoints(i,1) * allPoints(mod(i+1,numPoints),2)) ...
+                - (allPoints(i,2) * allPoints(mod(i+1,numPoints),1)));
+            
+            pcr = abs(pcr / 2);
+            showFeedbackPopup(handles, sprintf('PCR: %-.2f', pcr), 2);
+            Utilities.CustomPrinters.printInfo(sprintf('PCR: %-.2f', pcr));
+        else
+            pcr = pcr + ((allPoints(i,1) * allPoints(i+1,2)) ...
+                - (allPoints(i,2) * allPoints(i+1,1)));
+        end
+    end
+    
+    if numPoints>2
+        globalStudyInfo.pcr_min_points = allPoints;
+        globalStudyInfo.pcr_min_area = pcr;
+        handles.pcr_min_area_text.String = num2str(pcr);
+        setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+        delete(h);
+    end
+
+
+% --- Executes on button press in pushbutton55.
+function pushbutton55_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton55 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    subSwallowCount = globalStudyInfo.subSwallowCount;
+    
+    globalStudyInfo.subSwallowCount = subSwallowCount+1;
+    globalStudyInfo.subswallowFrameIndex1(1,1) = currentFrameIndex;
+    set(handles.text74,'String',globalStudyInfo.subswallowFrameIndex1(1,1));
+    set(handles.text75,'String',0);
+    set(handles.start_frame_text, 'String', globalStudyInfo.subswallowFrameIndex1(1,1) );
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes on button press in pushbutton56.
+function pushbutton56_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton56 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    subSwallowCount = globalStudyInfo.subSwallowCount;
+    
+    globalStudyInfo.subSwallowCount = subSwallowCount+1;
+    globalStudyInfo.subswallowFrameIndex1(2,1) = currentFrameIndex;
+    set(handles.text75,'String',globalStudyInfo.subswallowFrameIndex1(2,1));
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+
+% --- Executes on button press in pushbutton57.
+function pushbutton57_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton57 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    subSwallowCount = globalStudyInfo.subSwallowCount;
+    
+    globalStudyInfo.subSwallowCount = subSwallowCount+1;
+    globalStudyInfo.subswallowFrameIndex2(1,1) = currentFrameIndex;
+    set(handles.text78,'String',globalStudyInfo.subswallowFrameIndex2(1,1));
+    set(handles.text79,'String',0);
+     set(handles.end_frame_text, 'String', globalStudyInfo.subswallowFrameIndex2(1,1));
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes on button press in pushbutton58.
+function pushbutton58_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton58 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+   currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    subSwallowCount = globalStudyInfo.subSwallowCount;
+    
+    globalStudyInfo.subSwallowCount = subSwallowCount+1;
+    globalStudyInfo.subswallowFrameIndex2(2,1) = currentFrameIndex;
+    set(handles.text79,'String',globalStudyInfo.subswallowFrameIndex2(2,1));
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes on button press in pushbutton59.
+function pushbutton59_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton59 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+   currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    subSwallowCount = globalStudyInfo.subSwallowCount;
+    
+    globalStudyInfo.subSwallowCount = subSwallowCount+1;
+    globalStudyInfo.subswallowFrameIndex3(1,1) = currentFrameIndex;
+    set(handles.text86,'String',globalStudyInfo.subswallowFrameIndex3(1,1));
+    set(handles.text87,'String',0);
+    set(handles.hold_position_text, 'String', globalStudyInfo.subswallowFrameIndex3(1,1));
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes on button press in pushbutton60.
+function pushbutton60_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton60 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+  currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    subSwallowCount = globalStudyInfo.subSwallowCount;
+    
+    globalStudyInfo.subSwallowCount = subSwallowCount+1;
+    globalStudyInfo.subswallowFrameIndex3(2,1) = currentFrameIndex;
+    set(handles.text87,'String',globalStudyInfo.subswallowFrameIndex3(2,1));
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes during object creation, after setting all properties.
+ function uipanel11_CreateFcn(hObject, eventdata, handles)
+% % hObject    handle to uipanel11 (see GCBO)
+% % eventdata  reserved - to be defined in a future version of MATLAB
+% % handles    empty - handles not created until after all CreateFcns called
+% figure1 = findobj(0,'type','figure1');
+% panel_handles=findobj(figure1,'type','unipanel');
+% set(panel_handles,'parent',figure1);
+% 
+% 
+% % --- Executes during object creation, after setting all properties.
+ function uipanel12_CreateFcn(hObject, eventdata, handles)
+% % hObject    handle to uipanel12 (see GCBO)
+% % eventdata  reserved - to be defined in a future version of MATLAB
+% % handles    empty - handles not created until after all CreateFcns called
+% figure1 = findobj(0,'type','figure1');
+% panel_handles=findobj(figure1,'type','unipanel');
+% set(panel_handles,'parent',figure1);
+
+
+% --- Executes on button press in pushbutton61.
+function pushbutton61_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton61 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% hObject    handle to valarea_toggle (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of valarea_toggle
+
+handles.frameViewer;
+h = imline;
+
+%pos = h.getPosition();
+hc = get(h,'Children');
+XData = []; YData = [];
+for ii=1:length(hc)
+  x = get(hc(ii),'XData');
+  y = get(hc(ii),'YData');
+  XData = [XData; x(:)];
+  YData = [YData; y(:)];
+end
+
+   globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    button_state = get(hObject,'Value');
+    allPoints = [0,0];
+    
+       hList =globalStudyInfo.ref_Hlist;
+       hList = [hList;h];
+       globalStudyInfo.ref_Hlist=hList;
+       setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+  
+  
+
+
+% --- Executes on button press in pushbutton62.
+function pushbutton62_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton62 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton63.
+function pushbutton63_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton63 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton64.
+function pushbutton64_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton64 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton65.
+function pushbutton65_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton65 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton66.
+function pushbutton66_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton66 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton67.
+function pushbutton67_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton67 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton68.
+function pushbutton68_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton68 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton69.
+function pushbutton69_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton69 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton70.
+function pushbutton70_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton70 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton71.
+function pushbutton71_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton71 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton72.
+function pushbutton72_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton72 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton73.
+function pushbutton73_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton73 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton74.
+function pushbutton74_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton74 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
