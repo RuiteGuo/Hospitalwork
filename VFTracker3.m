@@ -24,7 +24,7 @@ function varargout = VFTracker3(varargin)
 
 % Edit the above text to modify the response to help VFTracker3
 
-% Last Modified by GUIDE v2.5 29-Sep-2018 15:28:40
+% Last Modified by GUIDE v2.5 29-Sep-2018 22:26:08
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -170,7 +170,11 @@ pointerShape = [ ...
     
     
     clear('globalStudyInfo');
+    
     globalStudyInfo = Data.GlobalStudyInfo;
+    display '===== clear?? ======';
+    display(globalStudyInfo.BT);
+    display(globalStudyInfo.OR);
     
     %globalStudyInfo.fullFileName = fullFileName;
     
@@ -181,6 +185,13 @@ pointerShape = [ ...
     globalStudyInfo.studyCoordinates = studyCoordinates;
     globalStudyInfo.vfVideoStructure = vfVideoStructure;
 %     globalStudyInfo.pas_coordinates = {0,0,0};
+
+
+        %initialize propertyname and value mapping
+       % valueSet = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32];
+     %   keySet = {'Lip_C','HP','BP','BT','OR','IPS','SPE','LE','HM','EM','LC','PSW','PC','PESO','TBR','PR','EC','bpm_Frame','oneHyoid_Frame','Bl_1hyoid','Bl_lva','lva_Frame'};
+    
+      
 
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
     
@@ -1232,7 +1243,7 @@ for i = 1:numFrames
        repeatCounter = repeatCounter + 1;
    end
        
-   if i == globalStudyInfo.ramus_mandible
+   if i == globalStudyInfo.bpm_Frame
        frameSize = size(currentFrame);
        position_x = floor(frameSize(2)*3/4);
        position_y = frameSize(1);
@@ -1244,7 +1255,7 @@ for i = 1:numFrames
        repeatCounter = repeatCounter + 1;
    end
        
-   if i == globalStudyInfo.hyoid_burst
+   if i == globalStudyInfo.oneHyoid_Frame
        position_x = floor(frameSize(2)*3/4);
        position_y = frameSize(1);
        AnchorPoint = 'RightBottom';
@@ -1325,35 +1336,20 @@ function pushbutton1_Callback(hObject, eventdata, handles)
         set(handles.frameScrubber, 'Value', 1);
     end
     
-% --- Executes on button press in pushbutton2.
-function pushbutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-    globalStudyInfo.ramus_mandible = floor(get(handles.frameScrubber, 'Value'));
-    set(handles.ramus_mandible_text, 'String', globalStudyInfo.ramus_mandible);
-    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
-    uicontrol(handles.frameScrubber);
+
     
-% --- Executes on button press in pushbutton3.
-function pushbutton3_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-    globalStudyInfo.hyoid_burst = floor(get(handles.frameScrubber, 'Value'));
-    set(handles.hyoid_burst_text, 'String', globalStudyInfo.hyoid_burst);
-    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
-    uicontrol(handles.frameScrubber);
-    
+
 % --- Executes on button press in pushbutton4.
 function pushbutton4_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton4 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.ues_closure)==1)
+        return;
+      end
     globalStudyInfo.ues_closure = floor(get(handles.frameScrubber, 'Value'));
+    
     set(handles.ues_closure_text, 'String', globalStudyInfo.ues_closure);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
     uicontrol(handles.frameScrubber);
@@ -1425,6 +1421,9 @@ function pushbutton15_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.lvc_offset)==1)
+        return;
+      end
     globalStudyInfo.lvc_offset = floor(get(handles.frameScrubber, 'Value'));
     set(handles.lvc_offset_text, 'String', globalStudyInfo.lvc_offset);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
@@ -1436,21 +1435,16 @@ function pushbutton16_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.ues_opening)==1)
+        return;
+      end
     globalStudyInfo.ues_opening = floor(get(handles.frameScrubber, 'Value'));
+    
     set(handles.ues_opening_text, 'String', globalStudyInfo.ues_opening);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
     uicontrol(handles.frameScrubber);
 
-% --- Executes on button press in pushbutton17 - laryngeal jump.
-function pushbutton17_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton17 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-    globalStudyInfo.laryngeal_jump = floor(get(handles.frameScrubber, 'Value'));
-    set(handles.laryngeal_jump_text, 'String', globalStudyInfo.laryngeal_jump);
-    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
-    uicontrol(handles.frameScrubber);
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -2874,6 +2868,19 @@ function pushbutton20_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % temporarily not implemented
+    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.Bl_lva)==1)
+        return;
+      end
+    
+    lva_Frame_aa = globalStudyInfo.lva_Frame; 
+    if lva_Frame_aa == currentFrameIndex
+        set(handles.uipanel17,'visible','on');
+    else
+       set(handles.uipanel15,'visible','on');
+       set(handles.text59,'String','Current Frame is not labeled as lva_Frame, Operation Failed');
+    end
 
 
 % --- Executes on button press in pushbutton21.
@@ -2883,6 +2890,9 @@ function pushbutton21_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.lva_Frame)==1)
+        return;
+      end
      globalStudyInfo.lva_Frame = currentFrameIndex;  
     set(handles.text62,'String',globalStudyInfo.lva_Frame);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
@@ -2896,6 +2906,9 @@ function pushbutton22_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'))
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.bpm_Frame)==1)
+        return;
+      end
      globalStudyInfo.bpm_Frame = currentFrameIndex; 
       set(handles.BPM_FRAME_text,'String',globalStudyInfo.bpm_Frame);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
@@ -2908,6 +2921,9 @@ function pushbutton23_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.le_Frame)==1)
+        return;
+      end
      globalStudyInfo.le_Frame = currentFrameIndex;  
      set(handles.text63,'String',globalStudyInfo.le_Frame);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
@@ -2920,7 +2936,12 @@ function pushbutton24_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-    globalStudyInfo.oneHyoid_Frame = currentFrameIndex;  
+      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.oneHyoid_Frame)==1)
+        return;
+      end
+    globalStudyInfo.oneHyoid_Frame = currentFrameIndex; 
+  
+    
     set(handles.text61,'String',currentFrameIndex);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
     set(handles.uipanel16,'visible','on');
@@ -2942,6 +2963,9 @@ function pushbutton26_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.UES_MAX_Frame)==1)
+        return;
+      end
     globalStudyInfo.UES_MAX_Frame = currentFrameIndex;  
      set(handles.text68,'String',globalStudyInfo.UES_MAX_Frame);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
@@ -2953,7 +2977,11 @@ function pushbutton27_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo'); 
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.MPC_Frame)==1)
+        return;
+      end
     globalStudyInfo.MPC_Frame = currentFrameIndex;  
     set(handles.text70,'String',globalStudyInfo.MPC_Frame);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
@@ -2966,6 +2994,9 @@ function pushbutton28_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
  currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.Epivert_Frame)==1)
+        return;
+      end
     globalStudyInfo.Epivert_Frame = currentFrameIndex; 
     set(handles.text69,'String',globalStudyInfo.Epivert_Frame);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
@@ -2985,31 +3016,58 @@ function pushbutton30_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+ if (lockChecker(handles,globalStudyInfo,globalStudyInfo.lvc_complete)==1)
+        return;
+      end
 currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
 SSCount = globalStudyInfo.subSwallowCount;
+
+         %Set title
+         title='Laryngeal Vestibule Closure Complete?';
+         % Set description
+         string1='Complete Closure';
+         string2='Incomplete or partial closure';
+
+         optionNum = 2;
+        stringArray= {string1,string2};
+        subsIdentifier=1;
+          propertyIdentifier=1;
+        nonAssessable=0;
+ 
+         
 
 if SSCount == 1
     if currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex1(2,1)
         set(handles.uipanel15,'visible','on');
     else
-        set(handles.uipanel14,'visible','on')
+         %Enable Dynamic Questionaire System
+         dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
+
     end
     
     
 elseif SSCount ==2
      if ((currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex1(2,1))&&(currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex2(2,1)))   
         set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','This is not the end frame of current Subswallow. Please Record the completeness at the end of this subswallow!');
+
      else
-        set(handles.uipanel14,'visible','on')
+      dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
     end
     
 elseif SSCount ==3
      if (currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex1(2,1))&&(currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex2(2,1))&&(currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex3(2,1))
-        set(handles.uipanel15,'visible','on');
+         set(handles.uipanel15,'visible','on');      
+         set(handles.text59,'String','This is not the end frame of current Subswallow. Please Record the completeness at the end of this subswallow!');
      else
-         set(handles.uipanel14,'visible','on')       
-    end
-    
+     dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+      
+     end
+elseif SSCount == 0
+    set(handles.uipanel15,'visible','on');      
+         set(handles.text59,'String','Total Subswallow Count is zero right now');
 end
 
 
@@ -3068,8 +3126,6 @@ function Option2_Callback(hObject, eventdata, handles)
 %set(panel_handles, 'parent', handles.unipanel12)
 set(handles.uipanel13,'visible','off')
 set(handles.uipanel11,'visible','off')
-set(handles.uipanel24,'visible','on')
-set(handles.uipanel25,'visible','on')
 set(handles.uipanel12,'visible','on')
 
 
@@ -3082,8 +3138,6 @@ function Option3_Callback(hObject, eventdata, handles)
 %set(panel_handles, 'parent', handles.unipanel13)
 set(handles.uipanel12,'visible','off')
 set(handles.uipanel11,'visible','off')
-set(handles.uipanel24,'visible','on')
-set(handles.uipanel25,'visible','off')
 set(handles.uipanel13,'visible','on')
 
 % --- Executes on button press in Option1.
@@ -3095,8 +3149,6 @@ function Option1_Callback(hObject, eventdata, handles)
 %set(panel_handles, 'parent', handles.unipanel11)
 set(handles.uipanel13,'visible','off')
 set(handles.uipanel12,'visible','off')
-set(handles.uipanel24,'visible','off')
-set(handles.uipanel25,'visible','off')
 set(handles.uipanel11,'visible','on')
 
 
@@ -3114,11 +3166,11 @@ currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
 SSCount = globalStudyInfo.subSwallowCount;
 
 if currentFrameIndex == globalStudyInfo.subswallowFrameIndex1(2,1)
-    globalStudyInfo. LVC_COMPLETE_SCORE (1,1)= currentFrameIndex;
+    globalStudyInfo. lvc_complete (1,1)= currentFrameIndex;
 elseif currentFrameIndex == globalStudyInfo.subswallowFrameIndex2(2,1)
-    globalStudyInfo. LVC_COMPLETE_SCORE (2,1)= currentFrameIndex;
+    globalStudyInfo. lvc_complete (2,1)= currentFrameIndex;
 elseif currentFrameIndex == globalStudyInfo.subswallowFrameIndex3(2,1)
-    globalStudyInfo. LVC_COMPLETE_SCORE (3,1)= currentFrameIndex;
+    globalStudyInfo. lvc_complete (3,1)= currentFrameIndex;
 end
 
 globalStudyInfo.TempCompleteness =0;
@@ -3237,11 +3289,17 @@ function pushbutton38_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.Bl_1hyoid)==1)
+        return;
+      end
     oneHyoid_Frame = globalStudyInfo.oneHyoid_Frame; 
     if oneHyoid_Frame == currentFrameIndex
         set(handles.uipanel16,'visible','on');
     else
-        showFeedbackPopup(handles,'Current Frame is not labeled as the first elevation of the larynx, Operation Failed',2);
+       % showFeedbackPopup(handles,'Current Frame is not labeled as the first elevation of the larynx, Operation Failed',2);
+       
+       set(handles.uipanel15,'visible','on');
+       set(handles.text59,'String','Current Frame is not labeled as the first elevation of the larynx, Operation Failed');
     end
 
     
@@ -3314,6 +3372,9 @@ function pushbutton49_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
   currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.First_Rest_Frame)==1)
+        return;
+      end
     globalStudyInfo.First_Rest_Frame = currentFrameIndex;  
      set(handles.text71,'String',globalStudyInfo.First_Rest_Frame );
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
@@ -3328,6 +3389,9 @@ function pushbutton50_Callback(hObject, eventdata, handles)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.Final_Rest_Frame)==1)
+        return;
+      end
     FinalSubswallowIndex = globalStudyInfo.subSwallowCount;
     StartFrame = 0;
     EndFrame = 0;
@@ -3345,10 +3409,12 @@ function pushbutton50_Callback(hObject, eventdata, handles)
     end
     
     if(currentFrameIndex<StartFrame || currentFrameIndex > EndFrame)
-          showFeedbackPopup(handles,'Current Frame is not within the range of final subswallow',1);
+         % showFeedbackPopup(handles,'Current Frame is not within the range of final subswallow',1);
+       set(handles.uipanel15,'visible','on');
+       set(handles.text59,'String','Current Frame is not within the range of final subswallow, Operation Failed');
     else
          globalStudyInfo.Final_Rest_Frame = currentFrameIndex;  
-          set(handles.text72,'String',globalStudyInfo.First_Rest_Frame );
+          set(handles.text72,'String',globalStudyInfo.Final_Rest_Frame );
     end
     
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
@@ -3528,6 +3594,7 @@ function pushbutton60_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
   currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+   
     subSwallowCount = globalStudyInfo.subSwallowCount;
     
     globalStudyInfo.subSwallowCount = subSwallowCount+1;
@@ -3593,92 +3660,711 @@ end
   
 
 
-% --- Executes on button press in pushbutton62.
-function pushbutton62_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton62 (see GCBO)
+
+
+
+% --- Executes on button press in pushbutton75.
+function pushbutton75_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton75 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.Lip_C)==1)
+        return;
+      end
+% Set title
+title = 'Lip Closure';
+ % Set description
+ string1 = 'No Labial Escape';
+ string2 = 'Interlabial Escape; No progression to anterior lip';
+ string3 = 'Escape from interlabial space or lateral juncture;no extension beyond vermilion border';
+ string4 = 'Escape Progressing to mid-chin';
+ string5 = 'Escape beyond mid-chin';
+
+ optionNum = 5;
+ stringArray= {string1,string2,string3,string4,string5};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
+ 
+ 
+ 
 
 
-% --- Executes on button press in pushbutton63.
-function pushbutton63_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton63 (see GCBO)
+% --- Executes on button press in pushbutton76.
+function pushbutton76_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton76 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.HP)==1)
+        return;
+      end
+
+ title='Hold Position/Tongue Control';
+ 
+ % Set description
+string1='Cohesive bolus between tongue to palatal seal';
+ string2 = 'Escape to lateral buccal cavity/floor of mouth';
+ string3 = 'Posterior escape of less than half of bolus';
+ string4 = 'posterior escape of greater than half of bolus';
+ %string5='Lip Closure');
+ 
+ 
+ 
+ optionNum = 4;
+ stringArray= {string1,string2,string3,string4};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
 
 
-% --- Executes on button press in pushbutton64.
-function pushbutton64_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton64 (see GCBO)
+% --- Executes on button press in pushbutton77.
+function pushbutton77_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton77 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.BP)==1)
+        return;
+      end
+
+title = 'Bolus Preparation/Mastication';
+ 
+ % Set description
+string1 = 'Timely and efficient chewing and mashing';
+string2='Slow prolonged chewing/mashing with complete re-collection';
+string3 = 'Disorganized chewing/mashing with solid pieces of bolus unchewed';
+string4='Minimal chewing/mashing with majority of bolus unchewed';
+ %string5='Lip Closure');
+   optionNum = 4;
+ stringArray= {string1,string2,string3,string4};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=1;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
 
 
-% --- Executes on button press in pushbutton65.
-function pushbutton65_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton65 (see GCBO)
+% --- Executes on button press in pushbutton78.
+function pushbutton78_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton78 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.BT)==1)
+        return;
+      end
+ title='Bolus Transport/Lingual Motion';
+ 
+ % Set description
+ string1='Brisk Tongue Motion';
+ string2='Delayed initiation of tongue motion';
+ string3='Slowed tongue motion';
+ string4='Repetitive/disorganized tongue motion';
+ string5='Minimal to no tongue motion';
+ 
+ 
+ 
+ 
+optionNum = 5;
+ stringArray= {string1,string2,string3,string4,string5};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
 
 
-% --- Executes on button press in pushbutton66.
-function pushbutton66_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton66 (see GCBO)
+% --- Executes on button press in pushbutton79.
+function pushbutton79_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton79 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.IPS)==1)
+        return;
+      end
+ title='Initiation of the Pharyngeal Swallow';
+ 
+ % Set description
+ string1='Bolus head at posterior angle of ramus';
+ string2='Bolus head in valleculae';
+ string3='Bolus head at posterior laryngeal surface of epiglottis';
+ string4='Bolus head in pyriforms';
+ string5='No Visible initiation';
+ 
+ 
+ 
+ 
+ 
+optionNum = 5;
+ stringArray= {string1,string2,string3,string4,string5};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
 
 
-% --- Executes on button press in pushbutton67.
-function pushbutton67_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton67 (see GCBO)
+% --- Executes on button press in pushbutton80.
+function pushbutton80_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton80 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.SPE)==1)
+        return;
+      end
 
+title='Soft Palate Elevation';
 
-% --- Executes on button press in pushbutton68.
-function pushbutton68_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton68 (see GCBO)
+% Set description
+ string1='No bolus between soft palate and pharyngeal wall';
+ string2='Trace column of contrast or air between SP and PW';
+ string3='Escape to nasopharynx';
+ string4='Escape to nasal cavity';
+ string5='Escape to nostril with/without emission';
+ optionNum = 5;
+ stringArray= {string1,string2,string3,string4,string5};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
+
+% --- Executes on button press in pushbutton81.
+function pushbutton81_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton81 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.LE)==1)
+        return;
+      end
+set(handles.uipanel29, 'visible', 'on');
+title='Laryngeal Elevation';
+
+% Set description
+ string1='Complete superior movement of thyroid cartilage with complete approximation of arytenoids to epiglottic petiole';
+ string2='Partial superior movement of thyroid cartilage with partial approximation of arytenoids to epiglottic petiole';
+ string3='Minimal superior movement of thyroid cartilage with minimal approxiamation of aryntenoids to epiglottic petiole';
+ string4='No superior movement of thyroid cartilage';
+ %string5='Lip Closure');
+ 
+ 
+optionNum = 4;
+ stringArray= {string1,string2,string3,string4};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
 
 
-% --- Executes on button press in pushbutton69.
-function pushbutton69_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton69 (see GCBO)
+% --- Executes on button press in pushbutton82.
+function pushbutton82_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton82 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.HM)==1)
+        return;
+      end
+title='Anterior Hyoid Motion';
+
+% Set description
+ string1='Complete anterior movement';
+ string2='Partial anterior movement';
+ string3='No anterior movement';
+ %string4='Lip Closure');
+ %string5='Lip Closure');
+ 
+ 
+ 
+ 
+optionNum = 3;
+ stringArray= {string1,string2,string3};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
 
 
-% --- Executes on button press in pushbutton70.
-function pushbutton70_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton70 (see GCBO)
+
+% --- Executes on button press in pushbutton83.
+function pushbutton83_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton83 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.EM)==1)
+        return;
+      end
+title='Epiglottic Movement';
+
+% Set description
+ string1='Complete Inversion';
+ string2='Partial Inversion';
+ string3='No Inversion';
+
+ optionNum = 3;
+ stringArray= {string1,string2,string3};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
+
+ 
+ 
 
 
-% --- Executes on button press in pushbutton71.
-function pushbutton71_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton71 (see GCBO)
+% --- Executes on button press in pushbutton84.
+function pushbutton84_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton84 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.LC)==1)
+        return;
+      end
+
+title='Laryngeal Closure';
+
+% Set description
+ string1='Complete;no air/contrast in laryngeal vestibule';
+ string2='Incomplete; narrow column air/constrast in laryngeal vestibule';
+ string3='None; wide column air/contrast in laryngeal vestibule';
+ %string4='Lip Closure');
+% string5='Lip Closure');
+ 
+ 
+ 
+ 
+ 
+optionNum = 3;
+ stringArray= {string1,string2,string3};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
 
 
-% --- Executes on button press in pushbutton72.
-function pushbutton72_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton72 (see GCBO)
+% --- Executes on button press in pushbutton85.
+function pushbutton85_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton85 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.PSW)==1)
+        return;
+      end
+
+title='Pharyngeal Stripping Wave';
+
+% Set description
+ string1='Present-complete';
+ string2='Present-diminished';
+ string3='Absent';
+ %string4='Lip Closure');
+% string5='Lip Closure');
+ 
+optionNum = 3;
+ stringArray= {string1,string2,string3};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
 
 
-% --- Executes on button press in pushbutton73.
-function pushbutton73_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton73 (see GCBO)
+
+% --- Executes on button press in pushbutton86.
+function pushbutton86_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton86 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.PC)==1)
+        return;
+      end
+set(handles.uipanel29, 'visible', 'on');
+set(handles.text211,'String','Pharyngeal Contraction; Component Not Assessable');
 
 
-% --- Executes on button press in pushbutton74.
-function pushbutton74_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton74 (see GCBO)
+ set(handles.uipanel30,'visible','off');
+ set(handles.uipanel31,'visible','off');
+ set(handles.uipanel32,'visible','off');
+ set(handles.uipanel33,'visible','off');
+ set(handles.uipanel34,'visible','off');
+ set(handles.uipanel35,'visible','on');
+
+
+% --- Executes on button press in pushbutton87.
+function pushbutton87_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton87 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.PESO)==1)
+        return;
+      end
+
+title='PES Opening';
+
+% Set description
+ string1='Complete distension and complete duration; no obstruction of flow';
+ string2='Partial distension/partial duration; partial obstruction of flow';
+ string3='Minimal distension/minimal duration; marked obstruction of flow';
+ string4='No distension with total obstruction of flow';
+ %string5='Lip Closure');
+ 
+ 
+ 
+ 
+ optionNum = 4;
+ stringArray= {string1,string2,string3,string4};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
+
+
+
+% --- Executes on button press in pushbutton88.
+function pushbutton88_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton88 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.TBR)==1)
+        return;
+      end
+
+title='Tongue Base Retraction';
+
+% Set description
+ string1='No Contrast between tongue base and posterior pharyngeal wall';
+ string2='Trace column of contrast or air between TB and PW';
+ string3='Narrow column of contrast or air between TB and PW';
+ string4='Wide column of contrast or air between TB and PW';
+ string5='No visible posterior motion of TB';
+ 
+ 
+ 
+ 
+optionNum = 5;
+ stringArray= {string1,string2,string3,string4,string5};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
+
+
+
+% --- Executes on button press in pushbutton89.
+function pushbutton89_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton89 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.PR)==1)
+        return;
+      end
+
+title='Pharyngeal Residue';
+
+% Set description
+ string1='Complete pharyngeal clearance';
+ string2='Trace residue within or on pharyngeal structures';
+ string3='Collection of residue within or on pharyngeal structures';
+ string4='Majority of contrst within or on pharyngeal structures';
+ string5='Minimal to no pharyngeal clearance';
+ 
+ 
+ 
+ 
+ 
+optionNum = 5;
+ stringArray= {string1,string2,string3,string4,string5};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
+
+
+
+% --- Executes on button press in pushbutton90.
+function pushbutton90_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton90 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.EC)==1)
+        return;
+      end
+title='Esophageal Clearance Upright Position';
+
+% Set description
+ string1='Complete clearance; esophageal coating';
+ string2='Esophageal retention';
+ string3='Esophageal retention with retrograde flow below pharyngoesophageal segment(PES)';
+ string4='Esophageal retention with retrograde flow through PES';
+ string5='Minimal to no esophageal clearance';
+ 
+ 
+ 
+ 
+ 
+optionNum = 5;
+ stringArray= {string1,string2,string3,string4,string5};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=1;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
+
+
+
+% --- Executes on button press in pushbutton92.
+function pushbutton92_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton92 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.OR)==1)
+        return;
+      end
+
+title='Oral Residue';
+
+% Set description
+ string1='Complete Oral Clearance';
+ string2='Trace Residue Lining Oral Structures';
+ string3='Residue Collection on Oral Structures';
+ string4='Majority of Bolus Remaining';
+ string5='Minimal to no clearance';
+ 
+ 
+ 
+ optionNum = 5;
+ stringArray= {string1,string2,string3,string4,string5};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+ dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
+ 
+
+
+
+% --- Executes on button press in pushbutton93.
+function pushbutton93_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton93 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.uipanel29, 'visible', 'off');
+
+
+% --- Executes on button press in pushbutton94.
+function pushbutton94_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton94 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.uipanel29, 'visible', 'off');
+
+
+% --- Executes on button press in pushbutton95.
+function pushbutton95_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton95 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.uipanel29, 'visible', 'off');
+
+
+% --- Executes on button press in pushbutton96.
+function pushbutton96_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton96 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.uipanel29, 'visible', 'off');
+
+
+% --- Executes on button press in pushbutton97.
+function pushbutton97_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton97 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.uipanel29, 'visible', 'off');
+
+% --- Executes on button press in pushbutton98.
+function pushbutton98_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton98 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.uipanel29, 'visible', 'off');
+
+%--this function enbale question system
+%variables:
+%optioinNum- scores from 0-4, how many options should be enabled?
+%optionStringArray-subtitles or ddescription for each option
+%nonAssessableEnabled-should there be an non-assessable option?
+%subswallowIdentifier-which subswallow you are indicating? if 1, enabled,
+%disabled otherwise
+%PropertyIdentifier-used to describe property
+function dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier)
+         %Enable Dynamic Questionaire System
+         set(handles.uipanel29, 'visible', 'on');
+         %Set title
+         set(handles.text211,'String',title);
+         
+         if (nonAssessable==1)
+              set(handles.uipanel35,'visible','on');
+             
+         else
+              set(handles.uipanel35,'visible','off');
+         end
+         switch optionNum
+             case 1
+                 set(handles.uipanel30,'visible','on');
+                 set(handles.uipanel31,'visible','off');
+                 set(handles.uipanel32,'visible','off');
+                 set(handles.uipanel33,'visible','off');
+                 set(handles.uipanel34,'visible','off');
+              
+                 set(handles.text212,'String',stringArray);
+                 %set(handles.text213,'String','Incomplete or partial closure');
+                 
+             
+             case 2
+                 set(handles.uipanel30,'visible','on');
+                 set(handles.uipanel31,'visible','on');
+                 set(handles.uipanel32,'visible','off');
+                 set(handles.uipanel33,'visible','off');
+                 set(handles.uipanel34,'visible','off');
+                          % Set description
+                 set(handles.text212,'String',stringArray(1,1));
+                 set(handles.text213,'String',stringArray(1,2));
+                 display '======whats in string array?case2';
+                 stringArray
+                 
+                 display '======whats in string array?case2******';
+                 
+                 
+             case 3
+                 set(handles.uipanel30,'visible','on');
+                 set(handles.uipanel31,'visible','on');
+                 set(handles.uipanel32,'visible','on');
+                 set(handles.uipanel33,'visible','off');
+                 set(handles.uipanel34,'visible','off');
+                 
+                 set(handles.text212,'String',stringArray(1,1));
+                 set(handles.text213,'String',stringArray(1,2));
+                 set(handles.text214,'String',stringArray(1,3));
+                                  display '======whats in string array?case3';
+                                  stringArray
+                 
+                 display '======whats in string array?case3******';
+
+                 
+             case 4
+                 set(handles.uipanel30,'visible','on');
+                 set(handles.uipanel31,'visible','on');
+                 set(handles.uipanel32,'visible','on');
+                 set(handles.uipanel33,'visible','on');
+                 set(handles.uipanel34,'visible','off');
+                 
+                 set(handles.text212,'String',stringArray(1,1));
+                 set(handles.text213,'String',stringArray(1,2));    
+                 set(handles.text214,'String',stringArray(1,3));
+                 set(handles.text215,'String',stringArray(1,4));
+                                  display '======whats in string array?case4';
+                                  stringArray
+                 
+                 display '======whats in string array?case4******';
+                 
+             case 5
+                 set(handles.uipanel30,'visible','on');
+                 set(handles.uipanel31,'visible','on');
+                 set(handles.uipanel32,'visible','on');
+                 set(handles.uipanel33,'visible','on');
+                 set(handles.uipanel34,'visible','on');  
+                 set(handles.text212,'String',stringArray(1,1));
+                 set(handles.text213,'String',stringArray(1,2));
+                 set(handles.text214,'String',stringArray(1,3));
+                 set(handles.text215,'String',stringArray(1,4));    
+                 set(handles.text216,'String',stringArray(1,5));        
+         end
+         
+         
+function A=lockChecker(handles,globalStudyInfo,propertyIndex)
+        
+        lockArray = globalStudyInfo.PropertyLock;
+        
+        if (lockArray(propertyIndex,1)==1) 
+            A=1;
+        errorMsg='';
+        if (globalStudyInfo.mode==1)
+        errorMsg= 'This property is locked and not accessable due to unfnished subswallow labeling';
+        elseif (globalStudyInfo.mode==0&&globalStudyInfo.subSwallowCount==0)
+            errorMsg = 'subswallow Count is 0, please finish labeling subswallow first';
+        else
+            errorMsg='This property is locked';
+        end
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',errorMsg);
+        else
+           A=0;
+        end
+        
+      
+   
+     
+        
+        
+        
+
+     
+    
+    
+
+
+
+        
+
+
+% --- Executes on button press in pushbutton99.
+function pushbutton99_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton99 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+globalStudyInfo.PropertyLock = ones(32,1);
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+ set( handles.text161, 'BackgroundColor', 'r' );
+ set( handles.text162, 'BackgroundColor', 'b' );
+ set( handles.text163, 'BackgroundColor', 'y' );
+ 
+
+ 
+
+
+
+% --- Executes on button press in pushbutton100.
+function pushbutton100_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton100 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+globalStudyInfo.PropertyLock = zeros(32,1);
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+  set( handles.text161, 'BackgroundColor', 'none' );

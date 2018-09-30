@@ -1,22 +1,32 @@
 classdef GlobalStudyInfo < handle
    properties
+       
+       % Mode
+       mode = 0;
+       PropertyLock = zeros(32,1);
+       ValueStorage = zeros(32,3);
+       currentSubswallowPointer=0;
+       
+       propertyMap;
+       
+       
       %These are all classes I made
       vfVideoStructure;
       studyImageProcessingInfo;
       studyCoordinates;
       
+      %Frame Descriptor Ordering
+      
+      
       %Kinematic Frame Numbers
       hold_position;
-      ramus_mandible;
-      hyoid_burst;
-      ues_closure;
+   
       at_rest;
       start_frame;
       end_frame;
       lvc_onset;
-      lvc_offset;
-      laryngeal_jump;
-      ues_opening;
+      
+      
       
       %UES Distension Points
       ues_point1;
@@ -78,49 +88,82 @@ classdef GlobalStudyInfo < handle
       subswallowFrameIndex2 = zeros(2,1);
       subswallowFrameIndex3 = zeros(2,1);
       
-     % LVC_COMPLETE: A score that records the completeness after each
-     % sub-swallows
-     
-     LVC_COMPLETE_SCORE = zeros(3,1);
-     TempCompleteness = 0;
+    % assign index   
+    Lip_C=1;
+    HP=2;
+    BP=3;
+    BT=4;
+    OR =5;
+    IPS =6;
+    SPE=7;
+    LE =8;
+    HM=9;
+    EM=10;
+    LC = 11;
+    PSW = 12;
+    PC = 13;
+    PESO=14;
+    TBR=15;
+    PR = 16;
+    EC =17;
      
      %BPM Frame Index (Bolus at Mandible)
-     bpm_Frame = 0;
+     bpm_Frame = 18;
+     oneHyoid_Frame=19;
+     Bl_1hyoid = 20;
+     Bl_lva = 21;
+     lva_Frame = 22;
+     le_Frame=23;
+     ues_opening=24;
+     ues_closure=25;
+      %Maximum UES Openning
+     UES_MAX_Frame = 26;
+      % maximum pharyngeal constriction frame
+     MPC_Frame = 27;
+      % LVC_COMPLETE: A score that records the completeness after each
+     % sub-swallow  
+     lvc_complete = 28;
+    
+     lvc_offset=29;
      
+       % Epiglottic Return Frame
+     Epivert_Frame = 30;
+     
+          % first frame showing the pyriform sinuses at the lowest position
+     First_Rest_Frame=31;
+     
+     % the frame showing the pyriform sinuses at the lowest position for
+     % the final subswallow
+     Final_Rest_Frame = 32;
+     
+     
+      TempCompleteness = -1;
      % First Elevation of the larynx : record the frame containing first
      % ...laryngeal air column
-     le_Frame=0;
      
-     % First evidence of Hyoid burst 1hoid
-     oneHyoid_Frame=0;
+     
+   
+     
      
      % location of bolus based on scale , always determined at frame #
      % marked 1hyoid, value should only be equal to 0,1,2,3,4
-     Bl_1hyoid = -1;
+    
      
      %lva_frame maximal laryngeal approximation record the first frame
      %where there is maximum approximation of the arytenoids to the
      %laryngeal surface of the epiglottis
-     lva_Frame = -1;
+     
      
      % bolus location for lva frame
-     Bl_lva = -1;
+   
      
-     % maximum pharyngeal constriction frame
-     MPC_Frame = -1;
+    
      
-     %Maximum UES Openning
-     UES_MAX_Frame = -1;
+ 
      
-     % Epiglottic Return Frame
-     Epivert_Frame = -1;
+   
      
-     % first frame showing the pyriform sinuses at the lowest position
-     First_Rest_Frame=-1;
-     
-     % the frame showing the pyriform sinuses at the lowest position for
-     % the final subswallow
-     Final_Rest_Frame = -1;
+
      
      % Multiple Draw Complete Monitor
      multiDraw = 0;
@@ -134,3 +177,4 @@ classdef GlobalStudyInfo < handle
    end
     
 end
+
