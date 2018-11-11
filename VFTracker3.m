@@ -24,7 +24,7 @@ function varargout = VFTracker3(varargin)
 
 % Edit the above text to modify the response to help VFTracker3
 
-% Last Modified by GUIDE v2.5 29-Sep-2018 22:26:08
+% Last Modified by GUIDE v2.5 02-Nov-2018 10:23:39
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -108,6 +108,11 @@ if ~isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundCol
 end
 
 
+function modeDetermination(handles)
+    set(handles.uipanel37,'visible','on');
+    
+
+
 %Called once at the start of the app
 function Initialize(handles)
 
@@ -172,6 +177,11 @@ pointerShape = [ ...
     clear('globalStudyInfo');
     
     globalStudyInfo = Data.GlobalStudyInfo;
+    
+    
+    
+  
+    
     display '===== clear?? ======';
     display(globalStudyInfo.BT);
     display(globalStudyInfo.OR);
@@ -185,15 +195,62 @@ pointerShape = [ ...
     globalStudyInfo.studyCoordinates = studyCoordinates;
     globalStudyInfo.vfVideoStructure = vfVideoStructure;
 %     globalStudyInfo.pas_coordinates = {0,0,0};
-
+  
+%add to set 
+  
+  subswallow1TextSet = globalStudyInfo.subswallow1TextSet;
+  subswallow2TextSet = globalStudyInfo.subswallow1TextSet;
+  subswallow3TextSet = globalStudyInfo.subswallow1TextSet;
+  subswallow1TextSet = [subswallow1TextSet,handles.text160,handles.text163,handles.text166,handles.text169,handles.text208,...
+      handles.text172,handles.text175,handles.text178,handles.text181,handles.text184,handles.text187,handles.text190,handles.text193,...
+      handles.text196,handles.text199,handles.text202,handles.text205,...
+      handles.BPM_FRAME_text,handles.text61,handles.text62,...
+      handles.text63,handles.text64,handles.text65,...
+      handles.ues_opening_text,handles.ues_closure_text,handles.text68,...
+      handles.text70,handles.text66,handles.lvc_offset_text,...
+      handles.text69,handles.text71,handles.text72];
+  
+  subswallow2TextSet = [subswallow2TextSet,handles.text161,handles.text164,...
+      handles.text167,handles.text170,handles.text209,...
+      handles.text173,handles.text176,handles.text179,handles.text182,...
+      handles.text185,handles.text188,handles.text191,handles.text194,...
+      handles.text197,handles.text200,handles.text203,handles.text206,...
+      handles.text90,handles.text92,handles.text94,...
+      handles.text97,handles.text98,handles.text102,...
+      handles.text104,handles.text106,handles.text108,...
+      handles.text110,handles.text112,handles.text114,...
+      handles.text217,handles.text155,handles.text159];
+  
+  
+  subswallow3TextSet = [subswallow3TextSet,handles.text162,handles.text165,handles.text168,handles.text171,handles.text210,...
+      handles.text174,handles.text177,handles.text180,handles.text183,...
+      handles.text186,handles.text189,handles.text192,handles.text195,...
+      handles.text198,handles.text201,handles.text204,handles.text207,...
+      handles.text91,handles.text93,handles.text95,handles.text96,...
+      handles.text99,handles.text100,...
+      handles.text103,handles.text105,handles.text107,...
+      handles.text111,handles.text113,handles.text115,...
+      handles.text218,handles.text156,handles.text158];
+    a = "display information down here ===="
+    size(subswallow1TextSet)
+    size(subswallow2TextSet)
+    size(subswallow3TextSet)
+  threeDTextSet=[subswallow1TextSet;subswallow2TextSet;subswallow3TextSet];
+  
+  globalStudyInfo.subswallow1TextSet=subswallow1TextSet;
+globalStudyInfo.subswallow2TextSet=subswallow2TextSet;
+globalStudyInfo.subswallow3TextSet=subswallow3TextSet;
+globalStudyInfo.subswallow3dTextSet=threeDTextSet;
 
         %initialize propertyname and value mapping
        % valueSet = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32];
      %   keySet = {'Lip_C','HP','BP','BT','OR','IPS','SPE','LE','HM','EM','LC','PSW','PC','PESO','TBR','PR','EC','bpm_Frame','oneHyoid_Frame','Bl_1hyoid','Bl_lva','lva_Frame'};
     
-      
+      modeDetermination(handles);
+      textCallBack='Debug, reach here?'
 
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+    textCallBack2='Debug, reach here2?'
     
     %Add a listener to listen to the value property of the frameScrubber to
     %update the frameNumberIndicator
@@ -234,12 +291,11 @@ pointerShape = [ ...
     updateGammaAdjustLevelIndicator(handles);
     
     
-    
-    
-    %Checking if a results file exists
+%Checking if a results file exists
     [pathStr, name, ext] = fileparts(strcat(pathName, fileName));
-    expectedFullExcelFileName = fullfile(pathStr, strcat(name, '.txt'))
-
+    expectedFullExcelFileName = fullfile(pathStr, strcat(name, '.txt'));
+    globalStudyInfo.fileName=name;
+    
     if (exist(expectedFullExcelFileName, 'file'))
         Utilities.CustomPrinters.printInfo('Previously saved annotation results exist. Loading...');
         %Read the table
@@ -343,6 +399,7 @@ pointerShape = [ ...
             end
         end
 
+
         %set calibration button font to red if calibration is not found, to
         %green if calibration is found
         if ~isempty(globalStudyInfo.pixelspercm) && globalStudyInfo.pixelspercm > 0
@@ -390,10 +447,22 @@ pointerShape = [ ...
    
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
+    % add all text to the set;
+    
+
+    %%%%
+    
+    
     %Render the first frame
     Render(handles);
     
-    
+    %%%%%%%%%%
+        
+    globalStudyInfo2 = getappdata(handles.appFigure, 'globalStudyInfo');
+    %spin lock
+  
+    stringTest='No longer stuck here'
+
     
 %The render function    
 function Render(handles, varargin)
@@ -719,6 +788,30 @@ function frameNumberListener(hFigure, eventdata)
      handles = guidata(hFigure);
      globalStudyInfo = getappdata(hFigure, 'globalStudyInfo');
      currentFrameNumber = floor(get(handles.frameScrubber, 'Value'));
+     ssCount = globalStudyInfo.subSwallowCount;
+     subswallowArray = globalStudyInfo.subswallowFrame;
+     
+     %only frame within the subswallow is labelable
+     inValidRange = 0;
+     if(globalStudyInfo.labelSubswallowProcess==0&&ssCount~=0) 
+        for n=1:ssCount
+            if(currentFrameNumber>=subswallowArray(n,1)&&currentFrameNumber<=subswallowArray(n,2))
+                globalStudyInfo.currentSubswallowPointer=n;        
+                setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+                changeCurrentWriteAbleText(globalStudyInfo);
+                inValidRange=1;
+                break;
+            end
+                
+        end 
+        if(inValidRange==0)
+                disableAllWriteAbleText(globalStudyInfo);
+                globalStudyInfo.currentSubswallowPointer=0;        
+                setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+        end
+     end
+    
+     
      totalFrames = globalStudyInfo.vfVideoStructure.numFrames;
      displayString = sprintf('%d / %d', currentFrameNumber, totalFrames);
      set(handles.frameNumberIndicator, 'String', displayString);
@@ -1330,10 +1423,17 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
      globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-    if ~isnan(globalStudyInfo.subswallowFrameIndex3(1,1))
-        set(handles.frameScrubber, 'Value', globalStudyInfo.subswallowFrameIndex3(1,1)); 
+    if (globalStudyInfo.subswallowFrame(3,1)~=0)
+        set(handles.frameScrubber, 'Value', globalStudyInfo.subswallowFrame(3,1)); 
+        globalStudyInfo.currentSubswallowPointer=3;
+        changeCurrentWriteAbleText(globalStudyInfo);
+       setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo); 
+        
     else
-        set(handles.frameScrubber, 'Value', 1);
+        
+         set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"subswallow 3 is not labeled");
+        return;
     end
     
 
@@ -1345,13 +1445,25 @@ function pushbutton4_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.ues_closure)==1)
         return;
       end
-    globalStudyInfo.ues_closure = floor(get(handles.frameScrubber, 'Value'));
-    
-    set(handles.ues_closure_text, 'String', globalStudyInfo.ues_closure);
-    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+    setTextForOtherButtons(globalStudyInfo,floor(get(handles.frameScrubber, 'Value')),25,handles);
     uicontrol(handles.frameScrubber);
 
 % --- Executes on button press in pushbutton5.
@@ -1387,10 +1499,15 @@ function startButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     
       globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-    if ~isnan(globalStudyInfo.subswallowFrameIndex1(1,1))
-        set(handles.frameScrubber, 'Value', globalStudyInfo.subswallowFrameIndex1(1,1)); 
+    if (globalStudyInfo.subswallowFrame(1,1)~=0)
+        set(handles.frameScrubber, 'Value', globalStudyInfo.subswallowFrame(1,1)); 
+        globalStudyInfo.currentSubswallowPointer=1;
+        changeCurrentWriteAbleText(globalStudyInfo);
+       setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo); 
     else
-        set(handles.frameScrubber, 'Value', 1);
+         set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"subswallow 1 is not labeled");
+        return;
     end
 
 % --- Executes on button press in endButton.
@@ -1399,10 +1516,18 @@ function endButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
        globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-    if ~isnan(globalStudyInfo.subswallowFrameIndex2(1,1))
-        set(handles.frameScrubber, 'Value', globalStudyInfo.subswallowFrameIndex2(1,1)); 
+    if(globalStudyInfo.subswallowFrame(2,1)~=0)
+        set(handles.frameScrubber, 'Value', globalStudyInfo.subswallowFrame(2,1)); 
+        
+               globalStudyInfo.currentSubswallowPointer=2;
+        changeCurrentWriteAbleText(globalStudyInfo);
+       setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo); 
+        
     else
-        set(handles.frameScrubber, 'Value', 1);
+        
+         set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"subswallow 2 is not labeled");
+        return;
     end
 % --- Executes on button press in laryngeal vestibule closing.
 function pushbutton14_Callback(hObject, eventdata, handles)
@@ -1421,11 +1546,25 @@ function pushbutton15_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.lvc_offset)==1)
         return;
       end
-    globalStudyInfo.lvc_offset = floor(get(handles.frameScrubber, 'Value'));
-    set(handles.lvc_offset_text, 'String', globalStudyInfo.lvc_offset);
+   setTextForOtherButtons(globalStudyInfo,floor(get(handles.frameScrubber, 'Value')),29,handles);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
     uicontrol(handles.frameScrubber);
 
@@ -1435,12 +1574,25 @@ function pushbutton16_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.ues_opening)==1)
         return;
       end
-    globalStudyInfo.ues_opening = floor(get(handles.frameScrubber, 'Value'));
-    
-    set(handles.ues_opening_text, 'String', globalStudyInfo.ues_opening);
+   setTextForOtherButtons(globalStudyInfo,floor(get(handles.frameScrubber, 'Value')),24,handles);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
     uicontrol(handles.frameScrubber);
 
@@ -1585,11 +1737,13 @@ set(hObject, 'enable', 'on');
 uicontrol(hObject);
 
 function kineBool = checkStartEndFrames(handles)
+  
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     if (isempty(globalStudyInfo.start_frame) || isempty(globalStudyInfo.end_frame))
         kineBool = false;
         warningMessage = sprintf('Error: Cannot display kinematics because start and end frames not designated. Please assign these frames.');
         uiwait(msgbox(warningMessage));
+          kineBool=true; %%later neet to be deleted;
     else
         kineBool = true;
     end
@@ -1601,15 +1755,49 @@ function kinematicsButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
     if (checkStartEndFrames(handles))
-        %automatically saving the file
-        saveButton_ClickedCallback(hObject, eventdata, handles);
+        
+        
+          % %retreive file path information stored in initialize
+        fullFileName = getappdata(handles.kinematicsButton,'fullFileName');
+        [pathstr name ext] = fileparts(fullFileName);
+        Author='Ruite';
+        size(name)
+        s='reached here1?'
+        valueDataFileName =strcat(name,'_UnValidated_',Author,'.txt');
+       
+        fclose(fopen(valueDataFileName, 'w'));
+        globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+        ValueStorage= globalStudyInfo.ValueStorage;
+        ssCount=globalStudyInfo.subSwallowCount;
+        subswallowArray = globalStudyInfo.subswallowFrame;
+         s='reached here2?'
+        fileID = fopen(valueDataFileName,'w');
+         s='reached here3?'
+        fprintf(fileID,'%s\n',Author); %first line is author name;
+         s='reached here4?'
+        fprintf(fileID,'%d\n',ssCount); % second line is ssCount, so we know how many data to read
+         s='reached here5?'
+        for i = 1:ssCount
+             fprintf(fileID,'%d%s%d\n',subswallowArray(i,1),',',subswallowArray(i,2));
+              s='reached here6?'
+        end
+        for k =1:32
+            fprintf(fileID,'%d%s%d%s%d\n',ValueStorage(k,1),',',ValueStorage(k,2),',',ValueStorage(k,3));
+             s='reached here7?'
+        end
+        
+       % fprintf(fileID,'%6.2f %12.8f\n',A);
+        fclose(fileID);
+        
+        
+        
+        %automatically saving the file  
+        %saveButton_ClickedCallback(hObject, eventdata, handles); %debug
 
         %close previous window if it exists
         close(findobj('type','figure','name','Kinematic Variables'))
 
-        % %retreive file path information stored in initialize
-        fullFileName = getappdata(handles.kinematicsButton,'fullFileName');
-        [pathstr name ext] = fileparts(fullFileName);
+      
 
         if exist([fullFileName(1:end-length(ext)) '_morphoj_.txt'],'file')
 
@@ -2870,13 +3058,44 @@ function pushbutton20_Callback(hObject, eventdata, handles)
 % temporarily not implemented
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.Bl_lva)==1)
         return;
-      end
+     end
+         % Set description
+ string1='Oral Cavity';
+ string2='Vakkecullar Pit';
+ string3='Pos Laryngeal Surface';
+ string4='Pyriform Sinuses Level';
+ string5='Already Entered Airway';
+ title='Enter Location of Bolus at first hyoid';
+ 
+    optionNum = 5;
+ stringArray= {string1,string2,string3,string4,string5};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+  globalStudyInfo.questionairePointer=23;
+  setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo); 
+     
     
-    lva_Frame_aa = globalStudyInfo.lva_Frame; 
+    lva_Frame_aa = globalStudyInfo.ValueStorage(20,globalStudyInfo.currentSubswallowPointer); 
+       
     if lva_Frame_aa == currentFrameIndex
-        set(handles.uipanel17,'visible','on');
+        dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
     else
        set(handles.uipanel15,'visible','on');
        set(handles.text59,'String','Current Frame is not labeled as lva_Frame, Operation Failed');
@@ -2890,11 +3109,25 @@ function pushbutton21_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
       if (lockChecker(handles,globalStudyInfo,globalStudyInfo.lva_Frame)==1)
         return;
       end
-     globalStudyInfo.lva_Frame = currentFrameIndex;  
-    set(handles.text62,'String',globalStudyInfo.lva_Frame);
+    setTextForOtherButtons(globalStudyInfo,currentFrameIndex,20,handles);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
     set(handles.uipanel17,'visible','on');
 
@@ -2906,12 +3139,24 @@ function pushbutton22_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'))
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
       if (lockChecker(handles,globalStudyInfo,globalStudyInfo.bpm_Frame)==1)
         return;
       end
-     globalStudyInfo.bpm_Frame = currentFrameIndex; 
-      set(handles.BPM_FRAME_text,'String',globalStudyInfo.bpm_Frame);
-    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+    setTextForOtherButtons(globalStudyInfo,currentFrameIndex,18,handles)
 
 
 % --- Executes on button press in pushbutton23.
@@ -2921,11 +3166,24 @@ function pushbutton23_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
       if (lockChecker(handles,globalStudyInfo,globalStudyInfo.le_Frame)==1)
         return;
       end
-     globalStudyInfo.le_Frame = currentFrameIndex;  
-     set(handles.text63,'String',globalStudyInfo.le_Frame);
+     setTextForOtherButtons(globalStudyInfo,currentFrameIndex,21,handles);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 
@@ -2936,13 +3194,28 @@ function pushbutton24_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
       if (lockChecker(handles,globalStudyInfo,globalStudyInfo.oneHyoid_Frame)==1)
         return;
       end
     globalStudyInfo.oneHyoid_Frame = currentFrameIndex; 
   
     
-    set(handles.text61,'String',currentFrameIndex);
+    setTextForOtherButtons(globalStudyInfo,currentFrameIndex,19,handles)
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
     set(handles.uipanel16,'visible','on');
 
@@ -2963,11 +3236,25 @@ function pushbutton26_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.UES_MAX_Frame)==1)
         return;
       end
-    globalStudyInfo.UES_MAX_Frame = currentFrameIndex;  
-     set(handles.text68,'String',globalStudyInfo.UES_MAX_Frame);
+   setTextForOtherButtons(globalStudyInfo,floor(get(handles.frameScrubber, 'Value')),26,handles);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 
@@ -2978,12 +3265,26 @@ function pushbutton27_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
 
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo'); 
+    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.MPC_Frame)==1)
         return;
       end
-    globalStudyInfo.MPC_Frame = currentFrameIndex;  
-    set(handles.text70,'String',globalStudyInfo.MPC_Frame);
+  setTextForOtherButtons(globalStudyInfo,floor(get(handles.frameScrubber, 'Value')),27,handles);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 
@@ -2994,11 +3295,24 @@ function pushbutton28_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
  currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.Epivert_Frame)==1)
         return;
       end
-    globalStudyInfo.Epivert_Frame = currentFrameIndex; 
-    set(handles.text69,'String',globalStudyInfo.Epivert_Frame);
+  setTextForOtherButtons(globalStudyInfo,floor(get(handles.frameScrubber, 'Value')),30,handles);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 
@@ -3016,6 +3330,21 @@ function pushbutton30_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
  if (lockChecker(handles,globalStudyInfo,globalStudyInfo.lvc_complete)==1)
         return;
       end
@@ -3033,12 +3362,14 @@ SSCount = globalStudyInfo.subSwallowCount;
         subsIdentifier=1;
           propertyIdentifier=1;
         nonAssessable=0;
- 
-         
+        globalStudyInfo.questionairePointer=28;
+        setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+         errorMsg='This is not the end frame of current Subswallow. Please Record the completeness at the end of this subswallow!';
 
 if SSCount == 1
-    if currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex1(2,1)
+    if currentFrameIndex ~= globalStudyInfo.subswallowFrame(1,2)
         set(handles.uipanel15,'visible','on');
+              set(handles.text59,'String','This is not the end frame of current Subswallow. Please Record the completeness at the end of this subswallow!');
     else
          %Enable Dynamic Questionaire System
          dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
@@ -3048,7 +3379,7 @@ if SSCount == 1
     
     
 elseif SSCount ==2
-     if ((currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex1(2,1))&&(currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex2(2,1)))   
+     if ((currentFrameIndex ~= globalStudyInfo.subswallowFrame(1,2))&&(currentFrameIndex ~= globalStudyInfo.subswallowFrame(2,2)))   
         set(handles.uipanel15,'visible','on');
         set(handles.text59,'String','This is not the end frame of current Subswallow. Please Record the completeness at the end of this subswallow!');
 
@@ -3058,7 +3389,7 @@ elseif SSCount ==2
     end
     
 elseif SSCount ==3
-     if (currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex1(2,1))&&(currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex2(2,1))&&(currentFrameIndex ~= globalStudyInfo.subswallowFrameIndex3(2,1))
+     if (currentFrameIndex ~= globalStudyInfo.subswallowFrame(1,2))&&(currentFrameIndex ~= globalStudyInfo.subswallowFrame(2,2))&&(currentFrameIndex ~= globalStudyInfo.subswallowFrame(3,2))
          set(handles.uipanel15,'visible','on');      
          set(handles.text59,'String','This is not the end frame of current Subswallow. Please Record the completeness at the end of this subswallow!');
      else
@@ -3289,12 +3620,43 @@ function pushbutton38_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+    
+    % Set description
+ string1='Oral Cavity';
+ string2='Vakkecullar Pit';
+ string3='Pos Laryngeal Surface';
+ string4='Pyriform Sinuses Level';
+ string5='Already Entered Airway';
+ title='Enter Location of Bolus at first hyoid';
+ 
+    optionNum = 5;
+ stringArray= {string1,string2,string3,string4,string5};
+ subsIdentifier=1;
+ propertyIdentifier=1;
+ nonAssessable=0;
+  globalStudyInfo.questionairePointer=22;
+  setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
       if (lockChecker(handles,globalStudyInfo,globalStudyInfo.Bl_1hyoid)==1)
         return;
       end
-    oneHyoid_Frame = globalStudyInfo.oneHyoid_Frame; 
+    oneHyoid_Frame = globalStudyInfo.ValueStorage(19,globalStudyInfo.currentSubswallowPointer); 
     if oneHyoid_Frame == currentFrameIndex
-        set(handles.uipanel16,'visible','on');
+       % oneHyoid_Frame = globalStudyInfo.ValueStorage(19,globalStudyInfo.currentSubswallowPointer); 
+        dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subsIdentifier,propertyIdentifier);
     else
        % showFeedbackPopup(handles,'Current Frame is not labeled as the first elevation of the larynx, Operation Failed',2);
        
@@ -3372,11 +3734,25 @@ function pushbutton49_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
   currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.First_Rest_Frame)==1)
         return;
       end
-    globalStudyInfo.First_Rest_Frame = currentFrameIndex;  
-     set(handles.text71,'String',globalStudyInfo.First_Rest_Frame );
+    setTextForOtherButtons(globalStudyInfo,floor(get(handles.frameScrubber, 'Value')),31,handles);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 
@@ -3389,23 +3765,38 @@ function pushbutton50_Callback(hObject, eventdata, handles)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+         if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.Final_Rest_Frame)==1)
         return;
       end
     FinalSubswallowIndex = globalStudyInfo.subSwallowCount;
     StartFrame = 0;
     EndFrame = 0;
-   
+   subswallowFrame = globalStudyInfo.subswallowFrame;
     if FinalSubswallowIndex == 1
-        StartFrame =subswallowFrameIndex1(1,1);
-        EndFrame = subswallowFrameIndex1(2,1);
+        StartFrame =subswallowFrame(1,1);
+        EndFrame = subswallowFrameIndex1(1,2);
         
     elseif FinalSubswallowIndex == 2
-        StartFrame =subswallowFrameIndex2(1,1);
-        EndFrame = subswallowFrameIndex2(2,1);
+        StartFrame =subswallowFrame(2,1);
+        EndFrame = subswallowFrame(2,2);
     elseif FinalSubswallowIndex == 3
-        StartFrame =subswallowFrameIndex3(1,1);
-        EndFrame = subswallowFrameIndex3(2,1);
+        StartFrame =subswallowFrame(3,1);
+        EndFrame = subswallowFrame(3,2);
     end
     
     if(currentFrameIndex<StartFrame || currentFrameIndex > EndFrame)
@@ -3413,8 +3804,7 @@ function pushbutton50_Callback(hObject, eventdata, handles)
        set(handles.uipanel15,'visible','on');
        set(handles.text59,'String','Current Frame is not within the range of final subswallow, Operation Failed');
     else
-         globalStudyInfo.Final_Rest_Frame = currentFrameIndex;  
-          set(handles.text72,'String',globalStudyInfo.Final_Rest_Frame );
+        setTextForOtherButtons(globalStudyInfo,floor(get(handles.frameScrubber, 'Value')),32,handles);
     end
     
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
@@ -3513,12 +3903,13 @@ function pushbutton55_Callback(hObject, eventdata, handles)
     currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     subSwallowCount = globalStudyInfo.subSwallowCount;
-    
+    if(subSwallowCount==0)
     globalStudyInfo.subSwallowCount = subSwallowCount+1;
-    globalStudyInfo.subswallowFrameIndex1(1,1) = currentFrameIndex;
-    set(handles.text74,'String',globalStudyInfo.subswallowFrameIndex1(1,1));
+    end
+    globalStudyInfo.subswallowFrame(1,1) = currentFrameIndex;
+    set(handles.text74,'String',globalStudyInfo.subswallowFrame(1,1));
     set(handles.text75,'String',0);
-    set(handles.start_frame_text, 'String', globalStudyInfo.subswallowFrameIndex1(1,1) );
+    set(handles.start_frame_text, 'String', globalStudyInfo.subswallowFrame(1,1) );
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 
@@ -3531,9 +3922,9 @@ function pushbutton56_Callback(hObject, eventdata, handles)
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     subSwallowCount = globalStudyInfo.subSwallowCount;
     
-    globalStudyInfo.subSwallowCount = subSwallowCount+1;
-    globalStudyInfo.subswallowFrameIndex1(2,1) = currentFrameIndex;
-    set(handles.text75,'String',globalStudyInfo.subswallowFrameIndex1(2,1));
+    %globalStudyInfo.subSwallowCount = subSwallowCount+1;
+    globalStudyInfo.subswallowFrame(1,2) = currentFrameIndex;
+    set(handles.text75,'String',globalStudyInfo.subswallowFrame(1,2));
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 
@@ -3547,11 +3938,13 @@ function pushbutton57_Callback(hObject, eventdata, handles)
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     subSwallowCount = globalStudyInfo.subSwallowCount;
     
+    if(subSwallowCount==1)
     globalStudyInfo.subSwallowCount = subSwallowCount+1;
-    globalStudyInfo.subswallowFrameIndex2(1,1) = currentFrameIndex;
-    set(handles.text78,'String',globalStudyInfo.subswallowFrameIndex2(1,1));
+    end
+    globalStudyInfo.subswallowFrame(2,1) = currentFrameIndex;
+    set(handles.text78,'String',globalStudyInfo.subswallowFrame(2,1));
     set(handles.text79,'String',0);
-     set(handles.end_frame_text, 'String', globalStudyInfo.subswallowFrameIndex2(1,1));
+     set(handles.end_frame_text, 'String', globalStudyInfo.subswallowFrame(2,1));
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 
@@ -3564,9 +3957,9 @@ function pushbutton58_Callback(hObject, eventdata, handles)
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     subSwallowCount = globalStudyInfo.subSwallowCount;
     
-    globalStudyInfo.subSwallowCount = subSwallowCount+1;
-    globalStudyInfo.subswallowFrameIndex2(2,1) = currentFrameIndex;
-    set(handles.text79,'String',globalStudyInfo.subswallowFrameIndex2(2,1));
+   % globalStudyInfo.subSwallowCount = subSwallowCount+1;
+    globalStudyInfo.subswallowFrame(2,2) = currentFrameIndex;
+    set(handles.text79,'String',globalStudyInfo.subswallowFrame(2,2));
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 
@@ -3578,12 +3971,13 @@ function pushbutton59_Callback(hObject, eventdata, handles)
    currentFrameIndex = floor(get(handles.frameScrubber, 'Value'));
     globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
     subSwallowCount = globalStudyInfo.subSwallowCount;
-    
+    if(subSwallowCount==2)
     globalStudyInfo.subSwallowCount = subSwallowCount+1;
-    globalStudyInfo.subswallowFrameIndex3(1,1) = currentFrameIndex;
-    set(handles.text86,'String',globalStudyInfo.subswallowFrameIndex3(1,1));
+    end
+    globalStudyInfo.subswallowFrame(3,1) = currentFrameIndex;
+    set(handles.text86,'String',globalStudyInfo.subswallowFrame(3,1));
     set(handles.text87,'String',0);
-    set(handles.hold_position_text, 'String', globalStudyInfo.subswallowFrameIndex3(1,1));
+    set(handles.hold_position_text, 'String', globalStudyInfo.subswallowFrame(3,1));
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 
@@ -3597,9 +3991,9 @@ function pushbutton60_Callback(hObject, eventdata, handles)
    
     subSwallowCount = globalStudyInfo.subSwallowCount;
     
-    globalStudyInfo.subSwallowCount = subSwallowCount+1;
-    globalStudyInfo.subswallowFrameIndex3(2,1) = currentFrameIndex;
-    set(handles.text87,'String',globalStudyInfo.subswallowFrameIndex3(2,1));
+    %globalStudyInfo.subSwallowCount = subSwallowCount+1;
+    globalStudyInfo.subswallowFrame(3,2) = currentFrameIndex;
+    set(handles.text87,'String',globalStudyInfo.subswallowFrame(3,2));
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 
@@ -3669,6 +4063,25 @@ function pushbutton75_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+ 
+ 
+ globalStudyInfo.questionairePointer=1;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+ 
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+        if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.Lip_C)==1)
         return;
       end
@@ -3699,6 +4112,21 @@ function pushbutton76_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+  globalStudyInfo.questionairePointer=2;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.HP)==1)
         return;
       end
@@ -3729,6 +4157,22 @@ function pushbutton77_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+ 
+  globalStudyInfo.questionairePointer=3;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.BP)==1)
         return;
       end
@@ -3756,6 +4200,21 @@ function pushbutton78_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+  globalStudyInfo.questionairePointer=4;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+ 
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.BT)==1)
         return;
       end
@@ -3786,6 +4245,21 @@ function pushbutton79_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+  globalStudyInfo.questionairePointer=6;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+ 
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.IPS)==1)
         return;
       end
@@ -3816,7 +4290,25 @@ function pushbutton80_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton80 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+  globalStudyInfo.questionairePointer=7;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.SPE)==1)
         return;
       end
@@ -3842,7 +4334,26 @@ function pushbutton81_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton81 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+     
+
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+ 
+  globalStudyInfo.questionairePointer=8;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+ 
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.LE)==1)
         return;
       end
@@ -3871,7 +4382,24 @@ function pushbutton82_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton82 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+  globalStudyInfo.questionairePointer=9;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.HM)==1)
         return;
       end
@@ -3902,7 +4430,22 @@ function pushbutton83_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton83 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+  globalStudyInfo.questionairePointer=10;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.EM)==1)
         return;
       end
@@ -3931,6 +4474,23 @@ function pushbutton84_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+  globalStudyInfo.questionairePointer=11;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.LC)==1)
         return;
       end
@@ -3963,6 +4523,19 @@ function pushbutton85_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+  globalStudyInfo.questionairePointer=12;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.PSW)==1)
         return;
       end
@@ -3992,6 +4565,22 @@ function pushbutton86_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+ 
+  globalStudyInfo.questionairePointer=13;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.PC)==1)
         return;
       end
@@ -4013,6 +4602,22 @@ function pushbutton87_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+  globalStudyInfo.questionairePointer=14;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.PESO)==1)
         return;
       end
@@ -4045,6 +4650,21 @@ function pushbutton88_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+ 
+  globalStudyInfo.questionairePointer=15;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.TBR)==1)
         return;
       end
@@ -4077,6 +4697,21 @@ function pushbutton89_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+  globalStudyInfo.questionairePointer=16;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.PR)==1)
         return;
       end
@@ -4110,6 +4745,20 @@ function pushbutton90_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+  globalStudyInfo.questionairePointer=17;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+                end
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.EC)==1)
         return;
       end
@@ -4142,6 +4791,22 @@ function pushbutton92_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+  globalStudyInfo.questionairePointer=5;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.OR)==1)
         return;
       end
@@ -4172,6 +4837,22 @@ function pushbutton93_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton93 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+         
+         globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+         currentSubswallowPointer=globalStudyInfo.currentSubswallowPointer;
+         questionairePointer=globalStudyInfo.questionairePointer;
+         if(questionairePointer==0)
+             
+             return;
+         end
+         text = globalStudyInfo.subswallow3dTextSet(currentSubswallowPointer,questionairePointer);
+         
+         %set Text
+         set(text,'String',"0");
+         set(text, 'ForegroundColor', 'y' );
+         globalStudyInfo.ValueStorage(questionairePointer,currentSubswallowPointer)=0;
+         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
 set(handles.uipanel29, 'visible', 'off');
 
 
@@ -4180,6 +4861,21 @@ function pushbutton94_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton94 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+         globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+         currentSubswallowPointer=globalStudyInfo.currentSubswallowPointer;
+         questionairePointer=globalStudyInfo.questionairePointer;
+         if(questionairePointer==0)
+             
+             return;
+         end
+          text = globalStudyInfo.subswallow3dTextSet(currentSubswallowPointer,questionairePointer);
+         
+         
+         %set Text
+         set(text,'String',"1");
+         set(text, 'ForegroundColor', 'y' );
+         globalStudyInfo.ValueStorage(currentSubswallowPointer,questionairePointer)=1;
+         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 set(handles.uipanel29, 'visible', 'off');
 
 
@@ -4188,6 +4884,21 @@ function pushbutton95_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton95 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+         globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+         currentSubswallowPointer=globalStudyInfo.currentSubswallowPointer;
+         questionairePointer=globalStudyInfo.questionairePointer;
+         if(questionairePointer==0)
+             
+             return;
+         end
+        text = globalStudyInfo.subswallow3dTextSet(currentSubswallowPointer,questionairePointer);
+         
+         
+         %set Text
+         set(text,'String',"2");
+         set(text, 'ForegroundColor', 'y' );
+         globalStudyInfo.ValueStorage(currentSubswallowPointer,questionairePointer)=2;
+         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 set(handles.uipanel29, 'visible', 'off');
 
 
@@ -4196,6 +4907,21 @@ function pushbutton96_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton96 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+         globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+         currentSubswallowPointer=globalStudyInfo.currentSubswallowPointer;
+         questionairePointer=globalStudyInfo.questionairePointer;
+         if(questionairePointer==0)
+             
+             return;
+         end
+          text = globalStudyInfo.subswallow3dTextSet(currentSubswallowPointer,questionairePointer);
+         
+         
+         %set Text
+         set(text,'String',"3");
+         set(text, 'ForegroundColor', 'y' );
+         globalStudyInfo.ValueStorage(currentSubswallowPointer,questionairePointer)=3;
+         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 set(handles.uipanel29, 'visible', 'off');
 
 
@@ -4204,6 +4930,21 @@ function pushbutton97_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton97 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+         globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+         currentSubswallowPointer=globalStudyInfo.currentSubswallowPointer;
+         questionairePointer=globalStudyInfo.questionairePointer;
+         if(questionairePointer==0)
+             
+             return;
+         end
+       text = globalStudyInfo.subswallow3dTextSet(currentSubswallowPointer,questionairePointer);
+         
+         
+         %set Text
+         set(text,'String',"4");
+         set(text, 'ForegroundColor', 'y' );
+         globalStudyInfo.ValueStorage(currentSubswallowPointer,questionairePointer)=4;
+         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 set(handles.uipanel29, 'visible', 'off');
 
 % --- Executes on button press in pushbutton98.
@@ -4211,6 +4952,22 @@ function pushbutton98_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton98 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+         globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+         currentSubswallowPointer=globalStudyInfo.currentSubswallowPointer;
+         questionairePointer=globalStudyInfo.questionairePointer;
+         
+         if(questionairePointer==0)
+             
+             return;
+         end
+         text = globalStudyInfo.subswallow3dTextSet(currentSubswallowPointer,questionairePointer);
+         
+         
+         %set Text
+         set(text,'String',"-1");
+         set(text, 'ForegroundColor', 'y' );
+         globalStudyInfo.ValueStorage(currentSubswallowPointer,questionairePointer)=-1;
+         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 set(handles.uipanel29, 'visible', 'off');
 
 %--this function enbale question system
@@ -4226,6 +4983,9 @@ function dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subs
          set(handles.uipanel29, 'visible', 'on');
          %Set title
          set(handles.text211,'String',title);
+         
+       
+
          
          if (nonAssessable==1)
               set(handles.uipanel35,'visible','on');
@@ -4304,6 +5064,7 @@ function dynamicQuestion(handles,title, optionNum,stringArray,nonAssessable,subs
                  set(handles.text215,'String',stringArray(1,4));    
                  set(handles.text216,'String',stringArray(1,5));        
          end
+        
          
          
 function A=lockChecker(handles,globalStudyInfo,propertyIndex)
@@ -4349,10 +5110,16 @@ function pushbutton99_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
 globalStudyInfo.PropertyLock = ones(32,1);
+textSet=globalStudyInfo.subswallow3dTextSet;
+[a,b]=size(textSet);
+for k=1:a
+for m= 1:b
+changeTextColorRed(textSet(k,m));
+set(textSet(k,m),'String',m);
+end
+end
+
  setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
- set( handles.text161, 'BackgroundColor', 'r' );
- set( handles.text162, 'BackgroundColor', 'b' );
- set( handles.text163, 'BackgroundColor', 'y' );
  
 
  
@@ -4367,4 +5134,299 @@ function pushbutton100_Callback(hObject, eventdata, handles)
 globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
 globalStudyInfo.PropertyLock = zeros(32,1);
  setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
-  set( handles.text161, 'BackgroundColor', 'none' );
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+globalStudyInfo.PropertyLock = ones(32,1);
+textSet=globalStudyInfo.subswallow3dTextSet;
+[a,b]=size(textSet);
+
+for m= 1:b
+      set(textSet(k,m), 'ForegroundColor', 'k' );
+        
+end
+
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+ 
+       
+         
+        
+  
+ function changeTextColorRed(handlestext)
+     set(handlestext,'ForegroundColor','m');
+     
+
+
+% --- Executes on button press in pushbutton101.
+function pushbutton101_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton101 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+subSwallowCount= globalStudyInfo.subSwallowCount;
+
+
+% check if valid subswallow??
+if(subSwallowCount==0)
+    set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"no subswallow is labeled");
+        return;
+
+elseif(subSwallowCount==1)
+    if(globalStudyInfo.subswallowFrame(1,2)==0)
+         set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"end frame of subswallow 1 is not labeled");
+        return;
+    end
+    
+    if(globalStudyInfo.subswallowFrame(1,2)~=globalStudyInfo.vfVideoStructure.numFrames)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"end frame of subswallow1 does not equal to last frame index,this video has more than 1 subswallow");
+        return;
+    end
+elseif(subSwallowCount==2)
+        if(globalStudyInfo.subswallowFrame(1,2)==0)
+         set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"end frame of subswallow 1 is not labeled");
+        return;
+        end
+        
+         if(globalStudyInfo.subswallowFrame(2,2)==0)
+         set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"end frame of subswallow 2 is not labeled");
+        return;
+         end
+    
+    
+     if(globalStudyInfo.subswallowFrame(2,2)~=globalStudyInfo.vfVideoStructure.numFrames)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"end frame of subswallow2 does not equal to last frame index,this video has more than 2 subswallow");
+        return; 
+    end
+elseif(subSwallowCount==3)
+    if(globalStudyInfo.subswallowFrame(1,2)==0)
+         set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"end frame of subswallow 1 is not labeled");
+        return;
+    end
+        
+         if(globalStudyInfo.subswallowFrame(2,2)==0)
+         set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"end frame of subswallow 2 is not labeled");
+        return;
+         end
+        
+        if(globalStudyInfo.subswallowFrame(3,2)==0)
+         set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"end frame of subswallow 3 is not labeled");
+        return;
+        end
+    
+     if(globalStudyInfo.subswallowFrame(3,2)~=globalStudyInfo.vfVideoStructure.numFrames)
+         
+    end
+end
+
+% unlock subswallow labeling process
+
+globalStudyInfo.labelSubswallowProcess=0;
+
+
+set(handles.uipanel18, 'visible', 'off');
+set(handles.uipanel36,'visible','on');
+setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+% --- Executes on button press in pushbutton104.
+function pushbutton104_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton104 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+globalStudyInfo.labelSubswallowProcess=1;
+
+currentSubswallowPointer = globalStudyInfo.currentSubswallowPointer;
+
+% starting with 0, increment before use
+
+
+
+
+
+
+set(handles.uipanel18, 'visible', 'on');
+set(handles.uipanel36,'visible','off');
+
+setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+function disableAllWriteAbleText(globalStudyInfo)
+textSet=globalStudyInfo.subswallow3dTextSet;
+  [a,b]=size(textSet);
+
+for m= 1:b
+for k=1:a
+set(textSet(k,m), 'ForegroundColor', 'k' );
+end
+end
+
+function changeCurrentWriteAbleText(globalStudyInfo)
+currentPropertyTextPointer = globalStudyInfo.currentSubswallowPointer;
+ textSet=globalStudyInfo.subswallow3dTextSet;
+[a,b]=size(textSet);
+
+for m= 1:b
+for k=1:a
+set(textSet(k,m), 'ForegroundColor', 'k' );
+end
+end
+
+for i = 1:b
+  
+    set(textSet(currentPropertyTextPointer,i), 'ForegroundColor', 'm' );
+end
+
+function setTextForOtherButtons(globalStudyInfo,currentFrameIndex,textIndex,handles)
+   
+    currentSwallow = globalStudyInfo.currentSubswallowPointer
+   
+    text=globalStudyInfo.subswallow3dTextSet(currentSwallow,textIndex);
+    set(text,'ForegroundColor','g');
+    set(text,'String',currentFrameIndex);
+    
+    globalStudyInfo.ValueStorage(textIndex,currentSwallow)=currentFrameIndex;
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+%unused
+function pushbutton23_CreateFcn(hObject, eventdata, handles)
+
+
+% --- Executes on button press in pushbutton105.
+function pushbutton105_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton105 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+set(handles.uipanel37,'visible','off');
+globalStudyInfo.mode=-1;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+
+% --- Executes on button press in pushbutton106.
+function pushbutton106_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton106 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+resume='cross validate call back'
+globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+set(handles.uipanel37,'visible','off');
+globalStudyInfo.mode=1;
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+% --- Executes on button press in pushbutton107.
+function pushbutton107_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton107 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+resume='resume call back'
+globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+set(handles.uipanel37,'visible','off');
+globalStudyInfo.mode=0;
+
+    %Checking if a results file exists
+  name = globalStudyInfo.fileName;
+    AuthoName='Author Name is '
+    Author = globalStudyInfo.Author
+    
+     valueDataFileName =strcat(name,'_UnValidated_',Author,'.txt');
+if(globalStudyInfo.mode==0)
+    
+    if (exist(valueDataFileName, 'file'))
+        
+        fid = fopen(valueDataFileName);
+
+tline = fgets(fid); 
+index=0;
+sCount=0;
+
+
+disp(tline)
+ tline = fgets(fid);
+  C = strsplit(tline,'\n');
+  disp(C)
+  size(C)
+  type(C(1,1))
+  sCount = str2num(C(1,1));
+  
+  
+        for k = 1:sCount
+            C = strsplit(tline,',');
+            disp(C)
+            globalStudyInfo.subswallowFrame(k,1)=C(1,1);
+            globalStudyInfo.subswallowFrame(k,2)=C(1,2);
+            tline=fgets(fid);
+        end
+
+
+
+while ischar(tline) 
+    disp(tline) 
+        for j = 1:32
+             C = strsplit(tline,',');
+             disp(C)
+            for k=1:sCount
+            globalStudyInfo.ValueStorage(j,k)=C(1,k);
+            end
+             tline=fgets(fid);
+        end
+        
+     tline = fgets(fid);
+     index=index+1;
+    
+end
+
+fclose(fid);
+     
+    
+    end
+end
+
+ setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+function edit17_Callback(hObject, eventdata, handles)
+% hObject    handle to edit17 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit17 as text
+%        str2double(get(hObject,'String')) returns contents of edit17 as a double
+%         globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+%     
+globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+textCallBack='Enter name call back'
+     if(isnan(get(hObject,'String')))
+         showFeedbackPopup(handles,'Please Enter Valid String',1);
+         testString='stuck in set name??'
+     else
+         Author = get(hObject,'String')
+         globalStudyInfo.Author = Author;
+         showFeedbackPopup(handles,sprintf('Author Name Saved: %s', Author),2);
+     end
+     
+    
+    setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+
+
+% --- Executes during object creation, after setting all properties.
+function edit17_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit17 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

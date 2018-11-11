@@ -1,11 +1,24 @@
 classdef GlobalStudyInfo < handle
    properties
        
+       Author='Default';
+       fileName='default';
+       % Text Color Set
+       subswallow1TextSet= [];
+       subswallow2TextSet=[];
+       subswallow3TextSet=[];
+       
+       subswallow3dTextSet=[];
+       
+       
        % Mode
-       mode = 0;
+       mode = -3; %mode = -1 start new, mode=0 resume, mode=1, cross validate;
+       labelSubswallowProcess=1; % if currently labeling process, no operations allowed;
        PropertyLock = zeros(32,1);
+      % propertyTextPointer=zeros(32,1);
        ValueStorage = zeros(32,3);
        currentSubswallowPointer=0;
+       questionairePointer=0;
        
        propertyMap;
        
@@ -84,6 +97,7 @@ classdef GlobalStudyInfo < handle
       % three frame index array, first element is start frame, second
       % element is end frame
       subSwallowCount=0;
+      subswallowFrame=zeros(3,2);
       subswallowFrameIndex1 = zeros(2,1);
       subswallowFrameIndex2 = zeros(2,1);
       subswallowFrameIndex3 = zeros(2,1);
