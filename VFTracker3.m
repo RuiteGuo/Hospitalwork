@@ -24,7 +24,7 @@ function varargout = VFTracker3(varargin)
 
 % Edit the above text to modify the response to help VFTracker3
 
-% Last Modified by GUIDE v2.5 02-Nov-2018 10:23:39
+% Last Modified by GUIDE v2.5 11-Nov-2018 23:12:53
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -175,9 +175,10 @@ pointerShape = [ ...
     
     
     clear('globalStudyInfo');
-    
+    clear('FrameErrorQueue');
     globalStudyInfo = Data.GlobalStudyInfo;
-    
+    FrameErrorQueue = Data.FrameErrorQueue;
+    setappdata(handles.appFigure, 'FrameErrorQueue', FrameErrorQueue);
     
     
   
@@ -208,7 +209,7 @@ pointerShape = [ ...
       handles.text63,handles.text64,handles.text65,...
       handles.ues_opening_text,handles.ues_closure_text,handles.text68,...
       handles.text70,handles.text66,handles.lvc_offset_text,...
-      handles.text69,handles.text71,handles.text72];
+      handles.text69,handles.text71,handles.text72,handles.text224];
   
   subswallow2TextSet = [subswallow2TextSet,handles.text161,handles.text164,...
       handles.text167,handles.text170,handles.text209,...
@@ -219,7 +220,7 @@ pointerShape = [ ...
       handles.text97,handles.text98,handles.text102,...
       handles.text104,handles.text106,handles.text108,...
       handles.text110,handles.text112,handles.text114,...
-      handles.text217,handles.text155,handles.text159];
+      handles.text217,handles.text155,handles.text159,handles.text225];
   
   
   subswallow3TextSet = [subswallow3TextSet,handles.text162,handles.text165,handles.text168,handles.text171,handles.text210,...
@@ -230,7 +231,7 @@ pointerShape = [ ...
       handles.text99,handles.text100,...
       handles.text103,handles.text105,handles.text107,...
       handles.text111,handles.text113,handles.text115,...
-      handles.text218,handles.text156,handles.text158];
+      handles.text218,handles.text156,handles.text158,handles.text226];
     a = "display information down here ===="
     size(subswallow1TextSet)
     size(subswallow2TextSet)
@@ -244,7 +245,7 @@ globalStudyInfo.subswallow3dTextSet=threeDTextSet;
 
         %initialize propertyname and value mapping
        % valueSet = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32];
-     %   keySet = {'Lip_C','HP','BP','BT','OR','IPS','SPE','LE','HM','EM','LC','PSW','PC','PESO','TBR','PR','EC','bpm_Frame','oneHyoid_Frame','Bl_1hyoid','Bl_lva','lva_Frame'};
+     %   keySet = {'Lip_C','HP','BP','BT','OR','IPS','SPE','LE','HM','EM','LC','PSW','PC','PESO','TBR','PR','EC','ramus_mandible','oneHyoid_Frame','Bl_1hyoid','Bl_lva','lva_Frame'};
     
       modeDetermination(handles);
       textCallBack='Debug, reach here?'
@@ -291,12 +292,30 @@ globalStudyInfo.subswallow3dTextSet=threeDTextSet;
     updateGammaAdjustLevelIndicator(handles);
     
     
+    %render first
+     %Render the first frame
+    Render(handles);
+    
 %Checking if a results file exists
     [pathStr, name, ext] = fileparts(strcat(pathName, fileName));
     expectedFullExcelFileName = fullfile(pathStr, strcat(name, '.txt'));
     globalStudyInfo.fileName=name;
     
-    if (exist(expectedFullExcelFileName, 'file'))
+    
+    
+ 
+      disp('spin lock');
+      setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+      waitfor(handles.uipanel37,'visible','off');
+      globalStudyInfo=getappdata(handles.appFigure, 'globalStudyInfo');
+     %spin lock, spin 
+ 
+ 
+  
+disp('out of spin lock');
+disp(globalStudyInfo.mode);
+    
+    if (globalStudyInfo.mode==0&&exist(expectedFullExcelFileName, 'file'))
         Utilities.CustomPrinters.printInfo('Previously saved annotation results exist. Loading...');
         %Read the table
         inputTable = readtable(expectedFullExcelFileName, 'Delimiter', '\t');
@@ -360,6 +379,9 @@ globalStudyInfo.subswallow3dTextSet=threeDTextSet;
                         %are extraneous columns in the _morphoJ file,
                         %ignore those too.
                     elseif isprop(globalStudyInfo,morphoJTable{1,j})
+                        
+                        disp(morphoJTable{1,j});
+                        
                         globalStudyInfo.(morphoJTable{1,j}) = str2double(morphoJTable{2,j});
                         if isnan(globalStudyInfo.(morphoJTable{1,j}))
                            globalStudyInfo.(morphoJTable{1,j}) = [];
@@ -371,6 +393,8 @@ globalStudyInfo.subswallow3dTextSet=threeDTextSet;
                         
                     else
                         Utilities.CustomPrinters.printError(sprintf('Error on reading "%s\" from _morphoJ_ file \n', morphoJTable{1,j}));
+                        
+                        disp(morphoJTable{1,j});
                         if strcmp('holdarea', morphoJTable{1,j})
                             continue;
                         end
@@ -421,13 +445,14 @@ globalStudyInfo.subswallow3dTextSet=threeDTextSet;
     else
         Utilities.CustomPrinters.printInfo('No previously saved annotations exist');
     end
+
     
     
     %Check if a file with the tracking status of each coordinate for each
     %frame exists. if it does, load it and fill the
     %globalStudyInfo.studyCoordinates.trackingStatus cell array.
     expectedFullTrackingStatusFileName = fullfile(pathStr, strcat(name, '_tracking_status.mat'));
-    if (exist (expectedFullTrackingStatusFileName, 'file'))
+    if (globalStudyInfo.mode==0&&exist (expectedFullTrackingStatusFileName, 'file'))
        Utilities.CustomPrinters.printInfo('Tracking information exists for previous session. Loading...');
        loadedMatFile = load(expectedFullTrackingStatusFileName);
        globalStudyInfo.studyCoordinates.trackedStatus = loadedMatFile.('savedTrackedStatus');
@@ -446,23 +471,11 @@ globalStudyInfo.subswallow3dTextSet=threeDTextSet;
     set(handles.blockSizeEditBox, 'String', num2str(globalStudyInfo.kltTrackerParameters.blockSize));
    
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
-
-    % add all text to the set;
-    
-
-    %%%%
-    
     
     %Render the first frame
     Render(handles);
     
     %%%%%%%%%%
-        
-    globalStudyInfo2 = getappdata(handles.appFigure, 'globalStudyInfo');
-    %spin lock
-  
-    stringTest='No longer stuck here'
-
     
 %The render function    
 function Render(handles, varargin)
@@ -1336,7 +1349,7 @@ for i = 1:numFrames
        repeatCounter = repeatCounter + 1;
    end
        
-   if i == globalStudyInfo.bpm_Frame
+   if i == globalStudyInfo.ramus_mandible
        frameSize = size(currentFrame);
        position_x = floor(frameSize(2)*3/4);
        position_y = frameSize(1);
@@ -1534,11 +1547,29 @@ function pushbutton14_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton14 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-    globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-    globalStudyInfo.lvc_onset = floor(get(handles.frameScrubber, 'Value'));
-    set(handles.lvc_onset_text, 'String', globalStudyInfo.lvc_onset);
+ globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
+    
+ 
+        if(globalStudyInfo.labelSubswallowProcess==1)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String','Subswallow labeling is not done. Please labeling First');
+        return;
+        end
+        
+                if(globalStudyInfo.currentSubswallowPointer==0)
+        set(handles.uipanel15,'visible','on');
+        set(handles.text59,'String',"Current Frame is not in any valid Subswallow Range");
+        return; 
+        end
+        
+        
+     if (lockChecker(handles,globalStudyInfo,globalStudyInfo.lvc_offset)==1)
+        return;
+      end
+   setTextForOtherButtons(globalStudyInfo,floor(get(handles.frameScrubber, 'Value')),28,handles);
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
     uicontrol(handles.frameScrubber);
+    
 
 % --- Executes on button press for laryngeal vestibule opening.
 function pushbutton15_Callback(hObject, eventdata, handles)
@@ -1781,7 +1812,7 @@ function kinematicsButton_Callback(hObject, eventdata, handles)
              fprintf(fileID,'%d%s%d\n',subswallowArray(i,1),',',subswallowArray(i,2));
               s='reached here6?'
         end
-        for k =1:32
+        for k =1:33
             fprintf(fileID,'%d%s%d%s%d\n',ValueStorage(k,1),',',ValueStorage(k,2),',',ValueStorage(k,3));
              s='reached here7?'
         end
@@ -3153,7 +3184,7 @@ function pushbutton22_Callback(hObject, eventdata, handles)
         return; 
         end
         
-      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.bpm_Frame)==1)
+      if (lockChecker(handles,globalStudyInfo,globalStudyInfo.ramus_mandible)==1)
         return;
       end
     setTextForOtherButtons(globalStudyInfo,currentFrameIndex,18,handles)
@@ -3360,9 +3391,9 @@ SSCount = globalStudyInfo.subSwallowCount;
          optionNum = 2;
         stringArray= {string1,string2};
         subsIdentifier=1;
-          propertyIdentifier=1;
+        propertyIdentifier=1;
         nonAssessable=0;
-        globalStudyInfo.questionairePointer=28;
+        globalStudyInfo.questionairePointer=33;
         setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
          errorMsg='This is not the end frame of current Subswallow. Please Record the completeness at the end of this subswallow!';
 
@@ -3907,9 +3938,12 @@ function pushbutton55_Callback(hObject, eventdata, handles)
     globalStudyInfo.subSwallowCount = subSwallowCount+1;
     end
     globalStudyInfo.subswallowFrame(1,1) = currentFrameIndex;
+    globalStudyInfo.start_frame=currentFrameIndex;
     set(handles.text74,'String',globalStudyInfo.subswallowFrame(1,1));
     set(handles.text75,'String',0);
     set(handles.start_frame_text, 'String', globalStudyInfo.subswallowFrame(1,1) );
+
+
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 
@@ -3924,6 +3958,7 @@ function pushbutton56_Callback(hObject, eventdata, handles)
     
     %globalStudyInfo.subSwallowCount = subSwallowCount+1;
     globalStudyInfo.subswallowFrame(1,2) = currentFrameIndex;
+    globalStudyInfo.end_frame = currentFrameIndex;
     set(handles.text75,'String',globalStudyInfo.subswallowFrame(1,2));
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
@@ -5109,7 +5144,7 @@ function pushbutton99_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-globalStudyInfo.PropertyLock = ones(32,1);
+globalStudyInfo.PropertyLock = ones(33,1);
 textSet=globalStudyInfo.subswallow3dTextSet;
 [a,b]=size(textSet);
 for k=1:a
@@ -5132,10 +5167,10 @@ function pushbutton100_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-globalStudyInfo.PropertyLock = zeros(32,1);
+globalStudyInfo.PropertyLock = zeros(33,1);
  setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
  globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
-globalStudyInfo.PropertyLock = ones(32,1);
+globalStudyInfo.PropertyLock = ones(33,1);
 textSet=globalStudyInfo.subswallow3dTextSet;
 [a,b]=size(textSet);
 
@@ -5295,6 +5330,50 @@ function setTextForOtherButtons(globalStudyInfo,currentFrameIndex,textIndex,hand
     set(text,'String',currentFrameIndex);
     
     globalStudyInfo.ValueStorage(textIndex,currentSwallow)=currentFrameIndex;
+    if(currentSwallow ==1) 
+        switch textIndex
+            case 18 %ramus_mandible; --- Bolus past mandible 18
+                globalStudyInfo.ramus_mandible=currentFrameIndex;
+            case 19 % hyoid_burst;---- 19 one hyoid frame
+                globalStudyInfo.hyoid_burst=currentFrameIndex;
+            case 21 % laryngeal_jump;  laryngeal elevation -- LE frame 21
+                globalStudyInfo.laryngeal_jump=currentFrameIndex;
+            case 24 % ues_opening;  24
+                globalStudyInfo.ues_opening=currentFrameIndex;
+            case 25 % ues_closure; 25
+                globalStudyInfo.ues_closure=currentFrameIndex;
+                
+            case 28 %lvc_onset;
+                globalStudyInfo.lvc_onset=currentFrameIndex;
+            case 29 % lvc_offset; ---- 29
+                globalStudyInfo.lvc_offset=currentFrameIndex;
+            case 31 % at_rest; ---- 31
+                globalStudyInfo.at_rest=currentFrameIndex;
+            
+            
+        end
+            
+        
+        
+    end
+    
+
+% ramus_mandible; --- Bolus past mandible 18
+% hyoid_burst;---- 19 one hyoid frame
+% ues_closure; 25
+% at_rest; ---- 31
+%
+% 
+% lvc_onset; -28
+% lvc_offset;  --- 29
+% laryngeal_jump;  laryngeal elevation -- LE frame 21
+% ues_opening;  24
+    
+    
+    
+    
+    
+    
     setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
 %unused
@@ -5311,6 +5390,69 @@ set(handles.uipanel37,'visible','off');
 globalStudyInfo.mode=-1;
  setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
 
+function frameFileParsing (file,handles,userNum)
+  subswallowArray=zeros(3,2);
+  propertyArray=zeros(33,3);
+ FrameErrorQueue=getappdata(handles.appFigure, 'FrameErrorQueue');
+    
+    
+fid = fopen(file);
+tline = fgets(fid); 
+index=0;
+sCount=0;
+
+
+disp(tline)
+tline = fgets(fid);
+
+    
+  sCount = str2num(tline)
+  
+  
+  %initialize total SubswallowCount;
+  %set(handles.text222,'String',)
+        for k = 1:sCount
+            tline=fgets(fid);
+              c =  str2num(tline);
+                disp('subswallow');
+                disp(c);
+            subswallowArray(k,1)=c(1,1);
+            subswallowArray(k,2)=c(1,2);  %% tline(1,2) is ,
+        end
+
+
+   tline=fgets(fid);
+   
+while ischar(tline) 
+
+        for j = 1:32
+             disp('Parsing value');
+               disp(tline);
+           c =  str2num(tline);
+ 
+            for k=1:sCount
+      
+            propertyArray(j,k)=c(1,k);
+            
+            end
+             tline=fgets(fid);
+        end
+        
+     tline = fgets(fid);
+     index=index+1;
+    
+end
+
+fclose(fid);
+if(userNum==1)
+    FrameErrorQueue.subswallow_user1=subswallowArray;
+    FrameErrorQueue.valueStorage_user1=propertyArray;
+else
+    FrameErrorQueue.subswallow_user2=subswallowArray;
+    FrameErrorQueue.valueStorage_user2=propertyArray; 
+end
+setappdata(handles.appFigure,'FrameErrorQueue',FrameErrorQueue);
+
 
 
 % --- Executes on button press in pushbutton106.
@@ -5318,11 +5460,62 @@ function pushbutton106_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton106 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-resume='cross validate call back'
+disp('cross validate call back');
 globalStudyInfo = getappdata(handles.appFigure, 'globalStudyInfo');
 set(handles.uipanel37,'visible','off');
 globalStudyInfo.mode=1;
  setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
+ 
+ file1 = uigetfile('*.txt');
+ file2 = uigetfile('*.txt');
+ %file name validation in the future
+
+ frameFileParsing (file1,handles,1);
+ frameFileParsing (file2,handles,2);
+  FrameErrorQueue=getappdata(handles.appFigure, 'FrameErrorQueue');
+  ssArray1 = FrameErrorQueue.subswallow_user1;
+  ssArray2=FrameErrorQueue.subswallow_user2;
+  property1=FrameErrorQueue.valueStorage_user1;
+  property2=FrameErrorQueue.valueStorage_user2;
+  subswallowError = FrameErrorQueue.subswallowError;
+  ErrorQueue = FrameErrorQueue.ErrorQueue;
+  actualSubswallow = FrameErrorQueue.actualSubswallow;
+  % check Subswallow First;
+  i = 0;
+  for k = 1:3
+      for j =1:2
+          if(ssArray1(k,j)~=ssArray2(k,j))  
+             i=i+1; 
+             subswallowError(i,1)=k;
+             subswallowError(i,2)=j;
+          % if equal, 
+          else 
+              actualSubswallow(k,j)=ssArray1(k,j);
+          end
+      end
+  end
+  
+  %%%% ???????
+  % 1-17 survey
+  i=0;
+  for k = 1:17
+      for j =1:3
+          if(property1(k,j)~=property2(k,j))
+              i=i+1;
+              ErrorQueue(i,1)=k;
+              ErrorQueue(i,2)=j;
+          else
+              globalStudyInfo.ValueStorage(k,j)=property1(k,j);
+            text=globalStudyInfo.subswallow3dTextSet(j,k);
+            set(text,'ForegroundColor','g');
+            set(text,'String',globalStudyInfo.ValueStorage(j,k));
+          end
+      end
+  end
+  % 18-32 frames 
+
+ 
+ 
 
 % --- Executes on button press in pushbutton107.
 function pushbutton107_Callback(hObject, eventdata, handles)
@@ -5353,30 +5546,52 @@ sCount=0;
 
 disp(tline)
  tline = fgets(fid);
-  C = strsplit(tline,'\n');
-  disp(C)
-  size(C)
-  type(C(1,1))
-  sCount = str2num(C(1,1));
+
+    
+  sCount = str2num(tline)
   
+  globalStudyInfo.subSwallowCount=sCount;
   
+  %initialize total SubswallowCount;
+  %set(handles.text222,'String',)
         for k = 1:sCount
-            C = strsplit(tline,',');
-            disp(C)
-            globalStudyInfo.subswallowFrame(k,1)=C(1,1);
-            globalStudyInfo.subswallowFrame(k,2)=C(1,2);
             tline=fgets(fid);
+        
+              c =  str2num(tline);
+                disp('subswallow');
+                disp(c);
+            globalStudyInfo.subswallowFrame(k,1)=c(1,1);
+            globalStudyInfo.subswallowFrame(k,2)=c(1,2);  %% tline(1,2) is ,
+            if(k==1)
+             set(handles.text74,'String',c(1,1));   
+             set(handles.text75,'String',c(1,2));   
+            elseif(k==2)
+             set(handles.text78,'String',c(1,1));   
+             set(handles.text79,'String',c(1,2));
+            elseif(k==3)
+             set(handles.text86,'String',c(1,1));   
+             set(handles.text87,'String',c(1,2));
+            end
         end
 
 
-
+ tline=fgets(fid);
+  subswallow3dTextSet = globalStudyInfo.subswallow3dTextSet;
 while ischar(tline) 
-    disp(tline) 
+    disp('within while loop =========')
+    disp(tline)
         for j = 1:32
-             C = strsplit(tline,',');
-             disp(C)
+             disp('Parsing value');
+               disp(tline);
+           c =  str2num(tline);
+ 
             for k=1:sCount
-            globalStudyInfo.ValueStorage(j,k)=C(1,k);
+      
+            globalStudyInfo.ValueStorage(j,k)=c(1,k);
+            text=globalStudyInfo.subswallow3dTextSet(k,j);
+            set(text,'ForegroundColor','g');
+            set(text,'String',globalStudyInfo.ValueStorage(j,k));
+            
             end
              tline=fgets(fid);
         end
@@ -5393,7 +5608,8 @@ fclose(fid);
 end
 
  setappdata(handles.appFigure, 'globalStudyInfo', globalStudyInfo);
-
+   
+   
 
 function edit17_Callback(hObject, eventdata, handles)
 % hObject    handle to edit17 (see GCBO)
@@ -5430,3 +5646,17 @@ function edit17_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in pushbutton109.
+function pushbutton109_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton109 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on button press in pushbutton110.
+function pushbutton110_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton110 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

@@ -10,13 +10,18 @@ classdef GlobalStudyInfo < handle
        
        subswallow3dTextSet=[];
        
+       totalSubswalloCount=0;
+       
+    
+       
+       
        
        % Mode
        mode = -3; %mode = -1 start new, mode=0 resume, mode=1, cross validate;
        labelSubswallowProcess=1; % if currently labeling process, no operations allowed;
-       PropertyLock = zeros(32,1);
+       PropertyLock = zeros(33,1);
       % propertyTextPointer=zeros(32,1);
-       ValueStorage = zeros(32,3);
+       ValueStorage = zeros(33,3);
        currentSubswallowPointer=0;
        questionairePointer=0;
        
@@ -32,14 +37,19 @@ classdef GlobalStudyInfo < handle
       
       
       %Kinematic Frame Numbers
-      hold_position;
-   
-      at_rest;
-      start_frame;
-      end_frame;
-      lvc_onset;
-      
-      
+
+start_frame;
+hold_position;
+ramus_mandible;
+hyoid_burst;
+ues_closure;
+at_rest;
+end_frame;
+
+lvc_onset;
+lvc_offset;
+laryngeal_jump;
+ues_opening;
       
       %UES Distension Points
       ues_point1;
@@ -128,8 +138,7 @@ classdef GlobalStudyInfo < handle
      Bl_lva = 21;
      lva_Frame = 22;
      le_Frame=23;
-     ues_opening=24;
-     ues_closure=25;
+    
       %Maximum UES Openning
      UES_MAX_Frame = 26;
       % maximum pharyngeal constriction frame
@@ -138,7 +147,7 @@ classdef GlobalStudyInfo < handle
      % sub-swallow  
      lvc_complete = 28;
     
-     lvc_offset=29;
+    
      
        % Epiglottic Return Frame
      Epivert_Frame = 30;
